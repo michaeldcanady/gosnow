@@ -24,16 +24,17 @@ func URLBuilderNew(base_url *url.URL, base_path, api_path string) (U URLBuilder)
   return U
 }
 
-func validate_path(path string) (bool, error) {
+func validate_path(path string) (bool) {
   if match, _ := regexp.MatchString("^/(?:[._a-zA-Z0-9-]/?)+[^/]$",path); !match {
-    return false, fmt.Errorf("Path validation failed - Expected: '/<component>[/component], got: %s", path)
+    logger.Printf("Path validation failed - Expected: '/<component>[/component], got: %s\n", path)
+    return false
   }
-  return true,nil
+  return true
 }
 
 func (U URLBuilder) get_appended_custom(path_component string) (string){
-  if _, err := validate_path(path_component); err != nil {
-    panic(err)
+  if !validate_path(path_component){
+    return ""
   }
 
   return U._resource_url + path_component

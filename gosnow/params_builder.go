@@ -42,8 +42,13 @@ func (P ParamsBuilder) limit(limit int) {
   }
 }
 
-func (P ParamsBuilder) getlimit() (int) {
-  return P._sysparms["sysparm_limit"].(int)
+func (P ParamsBuilder) getlimit() (int, error) {
+  if  _, ok := P._sysparms["sysparm_limit"].(int); !ok {
+    err := fmt.Errorf("'sysparm_limit' is %t not int like expected",P._sysparms["sysparm_limit"])
+    logger.Println(err)
+    return 0, err
+  }
+  return P._sysparms["sysparm_limit"].(int), nil
 }
 
 func (P ParamsBuilder) display_value(display_value bool) {

@@ -4,6 +4,7 @@ import(
   "net/url"
   "github.com/levigross/grequests"
   "fmt"
+  "errors"
 )
 
 type Resource struct {
@@ -42,18 +43,24 @@ func (R Resource) _request() (SnowRequest){
   return SnowRequestNew(R.Parameters, R.Session, R.Url_builder, 0, R)
 }
 
-func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (Response) {
+func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
+
+  if R.Base_path == "" {
+    err = errors.New("Failed 'Get': Resource is nil")
+    logger.Println(err)
+    return resp, err
+  }
   display_value              := R.Parameters._sysparms["sysparm_display_value"].(bool)
   exclude_reference_link     := R.Parameters._sysparms["sysparm_exclude_reference_link"].(bool)
   suppress_pagination_header := R.Parameters._sysparms["sysparm_suppress_pagination_header"].(bool)
   return R._request().get(query, limits, offset, stream, display_value, exclude_reference_link, suppress_pagination_header, fields...)
 }
 
-func (R Resource) Create(payload map[string]string) (Response){
+func (R Resource) Create(payload map[string]string) (Response,error){
 
   return R._request().create(payload)
 }
 
-func (R Resource) Update(query interface{}, payload map[string]string) (Response) {
+func (R Resource) Update(query interface{}, payload map[string]string) (Response, error) {
   return R._request().update(query, payload)
 }
