@@ -2,6 +2,9 @@
 
 ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/michaeldcanady/gosnow?style=plastic)
 ![Cirrus CI - Base Branch Build Status](https://img.shields.io/cirrus/github/michaeldcanady/gosnow?style=plastic)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/michaeldcanady/gosnow?style=plastic)
+![GitHub issues](https://img.shields.io/github/issues/michaeldcanady/gosnow?style=plastic)
+![GitHub](https://img.shields.io/github/license/michaeldcanady/gosnow?style=plastic)
 
 GoSnow is a Golang wrapper for the Service Now API.
 
