@@ -54,19 +54,19 @@ sanitize:
 	return returnValue
 }
 
-func (R Response) _get_buffered_response() ([]map[string]interface{}, error, int) {
+func (R Response) _get_buffered_response() ([]map[string]interface{}, int, error) {
 	response, err := R._get_response()
 	if err != nil {
 		err := fmt.Errorf("Could not buffer error due to response error")
-		return []map[string]interface{}{}, err, 0
+		return []map[string]interface{}{}, 0, err
 	}
 	if response.StatusCode == 204 {
 		deleted := map[string]interface{}{"status": "record deleted"}
-		return []map[string]interface{}{deleted}, nil, 1
+		return []map[string]interface{}{deleted}, 1, nil
 	}
 
 	sanitized_response := _sanitize(response)
-	return sanitized_response, nil, len(sanitized_response)
+	return sanitized_response, len(sanitized_response), nil
 }
 
 func (R Response) _get_response() (*grequests.Response, error) {
@@ -91,7 +91,7 @@ func (R Response) _get_response() (*grequests.Response, error) {
 	case code == 204:
 		logger.Printf("ServiceNow responded with 204 code! Record deleted successfully.\n")
 	case code <= 409 && code >= 400:
-		logger.Printf("ServiceNow responded with %v code! Client Side error detected. Error: %v\n", code)
+		logger.Printf("ServiceNow responded with %v code! Client Side error detected. Error: %v\n", code, code)
 	case code <= 509 && code >= 500:
 		logger.Printf("ServiceNow responded with %v code! Server Side error detected\n", code)
 	default:
@@ -102,15 +102,15 @@ func (R Response) _get_response() (*grequests.Response, error) {
 }
 
 func (R Response) First() (map[string]interface{}, error) {
-	content, err, _ := R.All()
+	content, _, err := R.All()
 	if err != nil {
-		err = fmt.Errorf("Could not retrieve first record because of upstream error")
+		err = fmt.Errorf("could not retrieve first record because of upstream error")
 		return map[string]interface{}{}, err
 	}
 	logger.Println(content[0])
 	return content[0], nil
 }
 
-func (R Response) All() ([]map[string]interface{}, error, int) {
+func (R Response) All() ([]map[string]interface{}, int, error) {
 	return R._get_buffered_response()
 }
