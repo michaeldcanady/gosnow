@@ -1,5 +1,7 @@
 # gosnow
 
+![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/michaeldcanady/gosnow)
+
 GoSnow is a Golang wrapper for the Service Now API.
 
 ```golang
@@ -71,9 +73,9 @@ func CreateExample() {
 
 	//# Set the payload for creation
 	new_record := map[string]string{
-		"short_description": "Pysnow created incident",
+		"short_description": "GoSnow created incident",
 		"description":       "This is awesome",
-		"u_depot_location":  "CMHS 3122A - Help Desk Location",
+		"u_depot_location":  "Example location",
 		"requested_for":     username,
 	}
 
