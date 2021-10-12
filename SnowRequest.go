@@ -1,7 +1,7 @@
 package gosnow
 
 import (
-	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -45,13 +45,14 @@ func (S SnowRequest) get(query interface{}, limits int, offset int, stream bool,
 	S.Parameters.exclude_reference_link(exclude_reference_link)
 	S.Parameters.suppress_pagination_header(suppress_pagination_header)
 
-	return S._get_response("GET", stream, map[string]string{}, map[string]string{})
+	return S._get_response("GET", stream, grequests.RequestOptions{})
 }
 
-func (S SnowRequest) create(payload map[string]string) (Response, error) {
-	response, err := S._get_response("POST", false, map[string]string{}, payload)
+func (S SnowRequest) create(payload grequests.RequestOptions) (Response, error) {
+
+	response, err := S._get_response("POST", false, payload)
 	if err != nil {
-		err = fmt.Errorf("Response Error: %v", err)
+		err = fmt.Errorf("response Error: %v", err)
 		logger.Println(err)
 		return Response{}, err
 	}
@@ -59,30 +60,17 @@ func (S SnowRequest) create(payload map[string]string) (Response, error) {
 	return S._get_response("POST", false, payload)
 }
 
-func (S SnowRequest) _get_response(method string, stream bool, header map[string]string, payloadSlice ...map[string]string) (Response, error) {
+func (S SnowRequest) _get_response(method string, stream bool, payload grequests.RequestOptions) (Response, error) {
 	var response *grequests.Response
 	var err error
 	if method == "GET" {
 		response, err = S.Session.Get(S._url, S.Parameters.as_dict())
 		if err != nil {
-			err = fmt.Errorf("Get request Failed: %v\n", err)
+			err = fmt.Errorf("get request Failed: %v", err)
 			log.Println(err)
 			return Response{}, err
 		}
 	} else {
-		pay1 := payloadSlice[0]
-
-		jsonString, err := json.Marshal(pay1)
-		if err != nil {
-			err = fmt.Errorf("Issue marshalling payload into Javascript: %v\n", err)
-			log.Println(err)
-			return Response{}, err
-		}
-
-		payload := grequests.RequestOptions{
-			JSON:    jsonString,
-			Headers: header,
-		}
 
 		switch method {
 		case "POST":
@@ -91,23 +79,29 @@ func (S SnowRequest) _get_response(method string, stream bool, header map[string
 				logger.Println(err)
 				return Response{}, err
 			}
-			response, err = S.Session.Post(S._url, &payload)
+			payload1 := (*S.Parameters.as_dict())
+			payload1.Headers = payload.Headers
+			payload1.JSON = payload.JSON
+
+			fmt.Println(payload1)
+
+			response, err = S.Session.Post(S._url, &payload1)
 			if err != nil {
-				err = fmt.Errorf("Post request Failed: %v\n", err)
+				err = fmt.Errorf("post request Failed: %v", err)
 				log.Println(err)
 				return Response{}, err
 			}
 		case "PUT":
 			response, err = S.Session.Put(S._url, &payload)
 			if err != nil {
-				err = fmt.Errorf("Put request Failed: %v\n", err)
+				err = fmt.Errorf("Put request Failed: %v", err)
 				log.Println(err)
 				return Response{}, err
 			}
 		case "DELETE":
 			response, err = S.Session.Delete(S._url, &payload)
 			if err != nil {
-				err = fmt.Errorf("delete request Failed: %v\n", err)
+				err = fmt.Errorf("delete request Failed: %v", err)
 				log.Println(err)
 				return Response{}, err
 			}
@@ -118,17 +112,17 @@ func (S SnowRequest) _get_response(method string, stream bool, header map[string
 }
 
 func (S SnowRequest) _get_custom_endpoint(value string) string {
-	var segment string
+	fmt.Printf("%s'\n", value)
 	if !strings.HasPrefix(value, "/") {
-		segment = fmt.Sprintf("/%s", value)
+		value = fmt.Sprintf("/%s", value)
 	}
-	return S.URLBuilder.get_appended_custom(segment)
+	return S.URLBuilder.get_appended_custom(value)
 }
 
-func (S SnowRequest) update(query interface{}, payload map[string]string) (Response, error) {
+func (S SnowRequest) update(query interface{}, payload grequests.RequestOptions) (Response, error) {
 	limits, err := S.Parameters.getlimit()
 	if err != nil {
-		err = fmt.Errorf("Failed to get limit due to: %v", err)
+		err = fmt.Errorf("failed to get limit due to: %v", err)
 		logger.Println(err)
 		return Response{}, err
 	}
@@ -138,14 +132,15 @@ func (S SnowRequest) update(query interface{}, payload map[string]string) (Respo
 	suppress_pagination_header := S.Parameters.getsuppress_pagination_header()
 	record, err := S.get(query, limits, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
 	if err != nil {
-		err = fmt.Errorf("Get error: %v", err)
+		err = fmt.Errorf("get error: %v", err)
 	}
 	first_record, err := record.First()
 	if err != nil {
-		return Response{}, fmt.Errorf("Could not update due to querying error.")
+		return Response{}, errors.New("could not update due to querying error")
 	}
 	S._url = S._get_custom_endpoint(first_record["sys_id"].(string))
-	return S._get_response("PUT", false, map[string]string{}, payload)
+
+	return S._get_response("PUT", false, payload)
 }
 
 func (S SnowRequest) delete(query interface{}) (map[string]interface{}, error) {
@@ -156,15 +151,17 @@ func (S SnowRequest) delete(query interface{}) (map[string]interface{}, error) {
 	resp, _ := S.get(query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
 	record, _ := resp.First()
 	S._url = S._get_custom_endpoint(record["sys_id"].(string))
-	resp, _ = S._get_response("DELETE", false, map[string]string{}, map[string]string{})
+	resp, _ = S._get_response("DELETE", false, grequests.RequestOptions{})
 
 	return resp.First()
 }
 
-func (S SnowRequest) custom(method string, pathAppend string, header map[string]string, args map[string]string) (Response, error) {
+func (S SnowRequest) custom(method string, pathAppend string, payload grequests.RequestOptions) (Response, error) {
 
 	if pathAppend != "" {
+		fmt.Printf("%s'\n", pathAppend)
 		S._url = S._get_custom_endpoint(pathAppend)
 	}
-	return S._get_response(method, false, header, args)
+
+	return S._get_response(method, false, payload)
 }
