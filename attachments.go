@@ -3,6 +3,8 @@ package gosnow
 import (
 	"os"
 	"path/filepath"
+
+	"github.com/levigross/grequests"
 )
 
 var (
@@ -29,16 +31,19 @@ func (A Attachment) Get(sys_id string, limit int) (Response, error) {
 }
 
 func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, error) {
+	var payload grequests.RequestOptions
+
+	payload.Headers = make(map[string]string)
+
 	resource := A.resource
 	name := filepath.Base(file_path)
 	resource.Parameters.AddCustom(map[string]interface{}{"table_name": A.tableName, "table_sys_id": sys_id, "file_name": name})
-	data, _ := os.ReadFile(file_path)
+	payload.JSON, _ = os.ReadFile(file_path)
 
-	headers := map[string]string{}
 	var path_append string
 
 	if multipart {
-		headers["Content-Type"] = "multipart/form-data"
+		payload.Headers["Content-Type"] = "multipart/form-data"
 		path_append = "/upload"
 	} else {
 		//TODO Add ability to read magic from files
@@ -46,11 +51,12 @@ func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, 
 		if HASMAGIC {
 			//magic.from_file(file_path, mime=True)
 		} else {
-			headers["Content-Type"] = ("text/plain")
+			payload.Headers["Content-Type"] = ("text/plain")
 		}
 		path_append = "/file"
 	}
-	return resource.request("POST", data, path_append, headers, map[string]string{})
+
+	return resource.request("POST", path_append, payload)
 }
 
 func (A Attachment) Delete(sys_id string) (map[string]interface{}, error) {

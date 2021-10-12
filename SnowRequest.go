@@ -52,7 +52,7 @@ func (S SnowRequest) create(payload grequests.RequestOptions) (Response, error) 
 
 	response, err := S._get_response("POST", false, payload)
 	if err != nil {
-		err = fmt.Errorf("Response Error: %v", err)
+		err = fmt.Errorf("response Error: %v", err)
 		logger.Println(err)
 		return Response{}, err
 	}
@@ -66,7 +66,7 @@ func (S SnowRequest) _get_response(method string, stream bool, payload grequests
 	if method == "GET" {
 		response, err = S.Session.Get(S._url, S.Parameters.as_dict())
 		if err != nil {
-			err = fmt.Errorf("Get request Failed: %v\n", err)
+			err = fmt.Errorf("get request Failed: %v", err)
 			log.Println(err)
 			return Response{}, err
 		}
@@ -79,23 +79,29 @@ func (S SnowRequest) _get_response(method string, stream bool, payload grequests
 				logger.Println(err)
 				return Response{}, err
 			}
-			response, err = S.Session.Post(S._url, &payload)
+			payload1 := (*S.Parameters.as_dict())
+			payload1.Headers = payload.Headers
+			payload1.JSON = payload.JSON
+
+			fmt.Println(payload1)
+
+			response, err = S.Session.Post(S._url, &payload1)
 			if err != nil {
-				err = fmt.Errorf("Post request Failed: %v\n", err)
+				err = fmt.Errorf("post request Failed: %v", err)
 				log.Println(err)
 				return Response{}, err
 			}
 		case "PUT":
 			response, err = S.Session.Put(S._url, &payload)
 			if err != nil {
-				err = fmt.Errorf("Put request Failed: %v\n", err)
+				err = fmt.Errorf("Put request Failed: %v", err)
 				log.Println(err)
 				return Response{}, err
 			}
 		case "DELETE":
 			response, err = S.Session.Delete(S._url, &payload)
 			if err != nil {
-				err = fmt.Errorf("delete request Failed: %v\n", err)
+				err = fmt.Errorf("delete request Failed: %v", err)
 				log.Println(err)
 				return Response{}, err
 			}
@@ -106,17 +112,17 @@ func (S SnowRequest) _get_response(method string, stream bool, payload grequests
 }
 
 func (S SnowRequest) _get_custom_endpoint(value string) string {
-	var segment string
+	fmt.Printf("%s'\n", value)
 	if !strings.HasPrefix(value, "/") {
-		segment = fmt.Sprintf("/%s", value)
+		value = fmt.Sprintf("/%s", value)
 	}
-	return S.URLBuilder.get_appended_custom(segment)
+	return S.URLBuilder.get_appended_custom(value)
 }
 
 func (S SnowRequest) update(query interface{}, payload grequests.RequestOptions) (Response, error) {
 	limits, err := S.Parameters.getlimit()
 	if err != nil {
-		err = fmt.Errorf("Failed to get limit due to: %v", err)
+		err = fmt.Errorf("failed to get limit due to: %v", err)
 		logger.Println(err)
 		return Response{}, err
 	}
@@ -126,11 +132,11 @@ func (S SnowRequest) update(query interface{}, payload grequests.RequestOptions)
 	suppress_pagination_header := S.Parameters.getsuppress_pagination_header()
 	record, err := S.get(query, limits, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
 	if err != nil {
-		err = fmt.Errorf("Get error: %v", err)
+		err = fmt.Errorf("get error: %v", err)
 	}
 	first_record, err := record.First()
 	if err != nil {
-		return Response{}, errors.New("Could not update due to querying error.")
+		return Response{}, errors.New("could not update due to querying error")
 	}
 	S._url = S._get_custom_endpoint(first_record["sys_id"].(string))
 
@@ -153,6 +159,7 @@ func (S SnowRequest) delete(query interface{}) (map[string]interface{}, error) {
 func (S SnowRequest) custom(method string, pathAppend string, payload grequests.RequestOptions) (Response, error) {
 
 	if pathAppend != "" {
+		fmt.Printf("%s'\n", pathAppend)
 		S._url = S._get_custom_endpoint(pathAppend)
 	}
 

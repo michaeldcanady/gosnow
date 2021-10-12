@@ -24,13 +24,21 @@ func NewParamsBuilder() (P ParamsBuilder) {
 		"sysparm_view":                       "",
 		"sysparm_fields":                     []string{},
 	}
+	P._custom_params = make(map[string]interface{})
 	return P
 }
 
 func (P ParamsBuilder) AddCustom(params map[string]interface{}) {
+
+	if P._custom_params == nil {
+		P._custom_params = make(map[string]interface{})
+	}
+
 	for k, v := range params {
 		P._custom_params[k] = v
 	}
+
+	P._custom_params = params
 }
 
 func (P ParamsBuilder) stringify_query(query map[string]interface{}) string {

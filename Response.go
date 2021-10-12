@@ -114,3 +114,17 @@ func (R Response) First() (map[string]interface{}, error) {
 func (R Response) All() ([]map[string]interface{}, int, error) {
 	return R._get_buffered_response()
 }
+
+func (R Response) Upload(filePath string, multipart bool) (resp Response, err error) {
+
+	attachments, err := R._resource.attachments()
+	if err != nil {
+		return
+	}
+
+	response := _sanitize(R._response)
+
+	sysID := response[0]["sys_id"].(string)
+
+	return attachments.Upload(sysID, filePath, multipart)
+}
