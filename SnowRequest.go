@@ -2,6 +2,7 @@ package gosnow
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -59,7 +60,7 @@ func (S SnowRequest) create(payload map[string]string) (Response, error) {
 	return S._get_response("POST", false, payload)
 }
 
-func (S SnowRequest) _get_response(method string, stream bool, header map[string]string, payloadSlice ...map[string]string) (Response, error) {
+func (S SnowRequest) _get_response(method string, stream bool, payload grequests.RequestOptions) (Response, error) {
 	var response *grequests.Response
 	var err error
 	if method == "GET" {
@@ -70,19 +71,6 @@ func (S SnowRequest) _get_response(method string, stream bool, header map[string
 			return Response{}, err
 		}
 	} else {
-		pay1 := payloadSlice[0]
-
-		jsonString, err := json.Marshal(pay1)
-		if err != nil {
-			err = fmt.Errorf("Issue marshalling payload into Javascript: %v\n", err)
-			log.Println(err)
-			return Response{}, err
-		}
-
-		payload := grequests.RequestOptions{
-			JSON:    jsonString,
-			Headers: header,
-		}
 
 		switch method {
 		case "POST":
@@ -125,7 +113,7 @@ func (S SnowRequest) _get_custom_endpoint(value string) string {
 	return S.URLBuilder.get_appended_custom(segment)
 }
 
-func (S SnowRequest) update(query interface{}, payload map[string]string) (Response, error) {
+func (S SnowRequest) update(query interface{}, args map[string]string) (Response, error) {
 	limits, err := S.Parameters.getlimit()
 	if err != nil {
 		err = fmt.Errorf("Failed to get limit due to: %v", err)
@@ -142,9 +130,23 @@ func (S SnowRequest) update(query interface{}, payload map[string]string) (Respo
 	}
 	first_record, err := record.First()
 	if err != nil {
-		return Response{}, fmt.Errorf("Could not update due to querying error.")
+		return Response{}, errors.New("Could not update due to querying error.")
 	}
 	S._url = S._get_custom_endpoint(first_record["sys_id"].(string))
+
+	pay1 := args
+
+	jsonString, err := json.Marshal(pay1)
+	if err != nil {
+		err = fmt.Errorf("Issue marshalling args into Javascript: %v\n", err)
+		log.Println(err)
+		return Response{}, err
+	}
+
+	payload = grequests.RequestOptions{
+		JSON: jsonString,
+	}
+
 	return S._get_response("PUT", false, map[string]string{}, payload)
 }
 
@@ -156,7 +158,7 @@ func (S SnowRequest) delete(query interface{}) (map[string]interface{}, error) {
 	resp, _ := S.get(query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
 	record, _ := resp.First()
 	S._url = S._get_custom_endpoint(record["sys_id"].(string))
-	resp, _ = S._get_response("DELETE", false, map[string]string{}, map[string]string{})
+	resp, _ = S._get_response("DELETE", false, grequests.RequestOptions{})
 
 	return resp.First()
 }
@@ -166,5 +168,20 @@ func (S SnowRequest) custom(method string, pathAppend string, header map[string]
 	if pathAppend != "" {
 		S._url = S._get_custom_endpoint(pathAppend)
 	}
-	return S._get_response(method, false, header, args)
+
+	pay1 := args
+
+	jsonString, err := json.Marshal(pay1)
+	if err != nil {
+		err = fmt.Errorf("Issue marshalling payload into Javascript: %v\n", err)
+		log.Println(err)
+		return Response{}, err
+	}
+
+	payload := grequests.RequestOptions{
+		JSON: jsonString,
+    Headers: header.
+	}
+
+	return S._get_response(method, false, payload)
 }
