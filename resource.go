@@ -1,8 +1,10 @@
 package gosnow
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/levigross/grequests"
@@ -46,7 +48,22 @@ func (R Resource) _request() SnowRequest {
 
 func (R Resource) request(method string, data []byte, path_append string, headers map[string]string, args map[string]string) (Response, error) {
 	//TODO add parameter for data
-	return R._request().custom(method, path_append, headers, args)
+
+	pay1 := args
+
+	jsonString, err := json.Marshal(pay1)
+	if err != nil {
+		err = fmt.Errorf("Issue marshalling payload into Javascript: %v\n", err)
+		log.Println(err)
+		return Response{}, err
+	}
+
+	payload := grequests.RequestOptions{
+		JSON:    jsonString,
+		Headers: headers,
+	}
+
+	return R._request().custom(method, path_append, payload)
 }
 
 func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
@@ -59,6 +76,7 @@ func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fi
 	display_value := R.Parameters._sysparms["sysparm_display_value"].(bool)
 	exclude_reference_link := R.Parameters._sysparms["sysparm_exclude_reference_link"].(bool)
 	suppress_pagination_header := R.Parameters._sysparms["sysparm_suppress_pagination_header"].(bool)
+
 	return R._request().get(query, limits, offset, stream, display_value, exclude_reference_link, suppress_pagination_header, fields...)
 }
 
@@ -67,11 +85,30 @@ func (R Resource) Delete(query interface{}) (map[string]interface{}, error) {
 	return R._request().delete(query)
 }
 
-func (R Resource) Create(payload map[string]string) (Response, error) {
+func (R Resource) Create(args map[string]string) (resp Response, err error)) {
+  
+	var payload grequests.RequestOptions
+
+	payload.JSON, err = json.Marshal(args)
+	if err != nil {
+		err = fmt.Errorf("Issue marshalling args into Javascript: %v\n", err)
+		log.Println(err)
+		return
+	}
 
 	return R._request().create(payload)
 }
 
-func (R Resource) Update(query interface{}, payload map[string]string) (Response, error) {
+func (R Resource) Update(query interface{}, args map[string]string) (resp Response, err error) {
+
+	var payload grequests.RequestOptions
+
+	payload.JSON, err = json.Marshal(args)
+	if err != nil {
+		err = fmt.Errorf("Issue marshalling args into Javascript: %v\n", err)
+		log.Println(err)
+		return
+	}
+
 	return R._request().update(query, payload)
 }

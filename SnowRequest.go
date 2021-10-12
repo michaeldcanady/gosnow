@@ -1,7 +1,6 @@
 package gosnow
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -46,11 +45,12 @@ func (S SnowRequest) get(query interface{}, limits int, offset int, stream bool,
 	S.Parameters.exclude_reference_link(exclude_reference_link)
 	S.Parameters.suppress_pagination_header(suppress_pagination_header)
 
-	return S._get_response("GET", stream, map[string]string{}, map[string]string{})
+	return S._get_response("GET", stream, grequests.RequestOptions{})
 }
 
-func (S SnowRequest) create(payload map[string]string) (Response, error) {
-	response, err := S._get_response("POST", false, map[string]string{}, payload)
+func (S SnowRequest) create(payload grequests.RequestOptions) (Response, error) {
+
+	response, err := S._get_response("POST", false, payload)
 	if err != nil {
 		err = fmt.Errorf("Response Error: %v", err)
 		logger.Println(err)
@@ -113,7 +113,7 @@ func (S SnowRequest) _get_custom_endpoint(value string) string {
 	return S.URLBuilder.get_appended_custom(segment)
 }
 
-func (S SnowRequest) update(query interface{}, args map[string]string) (Response, error) {
+func (S SnowRequest) update(query interface{}, payload grequests.RequestOptions) (Response, error) {
 	limits, err := S.Parameters.getlimit()
 	if err != nil {
 		err = fmt.Errorf("Failed to get limit due to: %v", err)
@@ -134,20 +134,7 @@ func (S SnowRequest) update(query interface{}, args map[string]string) (Response
 	}
 	S._url = S._get_custom_endpoint(first_record["sys_id"].(string))
 
-	pay1 := args
-
-	jsonString, err := json.Marshal(pay1)
-	if err != nil {
-		err = fmt.Errorf("Issue marshalling args into Javascript: %v\n", err)
-		log.Println(err)
-		return Response{}, err
-	}
-
-	payload = grequests.RequestOptions{
-		JSON: jsonString,
-	}
-
-	return S._get_response("PUT", false, map[string]string{}, payload)
+	return S._get_response("PUT", false, payload)
 }
 
 func (S SnowRequest) delete(query interface{}) (map[string]interface{}, error) {
@@ -163,24 +150,10 @@ func (S SnowRequest) delete(query interface{}) (map[string]interface{}, error) {
 	return resp.First()
 }
 
-func (S SnowRequest) custom(method string, pathAppend string, header map[string]string, args map[string]string) (Response, error) {
+func (S SnowRequest) custom(method string, pathAppend string, payload grequests.RequestOptions) (Response, error) {
 
 	if pathAppend != "" {
 		S._url = S._get_custom_endpoint(pathAppend)
-	}
-
-	pay1 := args
-
-	jsonString, err := json.Marshal(pay1)
-	if err != nil {
-		err = fmt.Errorf("Issue marshalling payload into Javascript: %v\n", err)
-		log.Println(err)
-		return Response{}, err
-	}
-
-	payload := grequests.RequestOptions{
-		JSON: jsonString,
-    Headers: header,
 	}
 
 	return S._get_response(method, false, payload)
