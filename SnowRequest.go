@@ -80,7 +80,8 @@ func (S SnowRequest) _get_response(method string, stream bool, header map[string
 		}
 
 		payload := grequests.RequestOptions{
-			JSON: jsonString,
+			JSON:    jsonString,
+			Headers: header,
 		}
 
 		switch method {

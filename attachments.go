@@ -17,6 +17,7 @@ type Attachment struct {
 func NewAttachment(resource Resource, tableName string) (A Attachment) {
 	A.resource = resource
 	A.tableName = tableName
+	return
 }
 
 func (A Attachment) Get(sys_id string, limit int) (Response, error) {
@@ -31,7 +32,7 @@ func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, 
 	resource := A.resource
 	name := filepath.Base(file_path)
 	resource.Parameters.AddCustom(map[string]interface{}{"table_name": A.tableName, "table_sys_id": sys_id, "file_name": name})
-	data, _ = os.ReadFile(file_path)
+	data, _ := os.ReadFile(file_path)
 
 	headers := map[string]string{}
 	var path_append string
@@ -48,9 +49,8 @@ func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, 
 			headers["Content-Type"] = ("text/plain")
 		}
 		path_append = "/file"
-
-		return resource.request("POST", path_append, headers, map[string]string{})
 	}
+	return resource.request("POST", data, path_append, headers, map[string]string{})
 }
 
 func (A Attachment) Delete(sys_id string) (map[string]interface{}, error) {
