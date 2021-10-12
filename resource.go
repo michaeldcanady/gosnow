@@ -44,7 +44,8 @@ func (R Resource) _request() SnowRequest {
 	return SnowRequestNew(R.Parameters, R.Session, R.Url_builder, 0, R)
 }
 
-func (R Resource) request(method string, path_append string, headers map[string]string, args map[string]string) (Response, error) {
+func (R Resource) request(method string, data []byte, path_append string, headers map[string]string, args map[string]string) (Response, error) {
+	//TODO add parameter for data
 	return R._request().custom(method, path_append, headers, args)
 }
 
