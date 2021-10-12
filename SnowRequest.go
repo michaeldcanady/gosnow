@@ -180,7 +180,7 @@ func (S SnowRequest) custom(method string, pathAppend string, header map[string]
 
 	payload := grequests.RequestOptions{
 		JSON: jsonString,
-    Headers: header.
+    Headers: header,
 	}
 
 	return S._get_response(method, false, payload)
