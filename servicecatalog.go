@@ -44,12 +44,12 @@ func (S ServiceCatalog) _request() SnowRequest {
 	return SnowRequestNew(S.Parameters, S.Session, S.Url_builder, 0, S)
 }
 
-func (S ServiceCatalog) Get() (resp Response, err error) {
+func (S ServiceCatalog) Get(query interface{}) (resp Response, err error) {
 	if S.Base_path == "" {
 		err = errors.New("failed 'Get': ServiceCatalog is nil")
 		logger.Println(err)
 		return resp, err
 	}
 
-	return S._request().get("", 0, 0, false, false, false, false)
+	return S._request().get(query, 0, 0, false, false, false, false)
 }
