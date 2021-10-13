@@ -10,21 +10,28 @@ import (
 )
 
 type SnowRequest struct {
-	Session    *grequests.Session
-	_url       string
-	Chunk_size int
-	Resource   Resource
-	Parameters ParamsBuilder
-	URLBuilder URLBuilder
+	Session        *grequests.Session
+	_url           string
+	Chunk_size     int
+	Resource       Resource
+	ServiceCatalog ServiceCatalog
+	Parameters     ParamsBuilder
+	URLBuilder     URLBuilder
 }
 
-func SnowRequestNew(parameters ParamsBuilder, session *grequests.Session, url_builder URLBuilder, chunk_size int, resource Resource) (S SnowRequest) {
+func SnowRequestNew(parameters ParamsBuilder, session *grequests.Session, url_builder URLBuilder, chunk_size int, resource interface{}) (S SnowRequest) {
 	S.Parameters = parameters
 	S.Session = session
 	S._url = url_builder.getURL()
 	S.URLBuilder = url_builder
 	S.Chunk_size = chunk_size
-	S.Resource = resource
+
+	switch resource := resource.(type) {
+	case Resource:
+		S.Resource = resource
+	case ServiceCatalog:
+		S.ServiceCatalog = resource
+	}
 
 	return S
 }
