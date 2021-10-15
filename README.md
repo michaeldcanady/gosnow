@@ -5,6 +5,7 @@
 ![GitHub release (latest by date)](https://img.shields.io/github/v/release/michaeldcanady/gosnow?style=plastic)
 ![GitHub issues](https://img.shields.io/github/issues/michaeldcanady/gosnow?style=plastic)
 ![GitHub](https://img.shields.io/github/license/michaeldcanady/gosnow?style=plastic)
+![GitHub all releases](https://img.shields.io/github/downloads/michaeldcanady/gosnow/total?style=plastic)
 
 GoSnow is a Golang wrapper for the Service Now API.
 
