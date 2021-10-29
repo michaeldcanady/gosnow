@@ -4,19 +4,13 @@ import (
 	"fmt"
 )
 
-//Base Errors
-var ()
-
-type CustomError struct {
-	err error
+type ServiceCatalogError struct {
 	msg string
+	err string
 }
 
-func (err CustomError) Error() string {
-	if err.err != nil {
-		return fmt.Sprintf("%s: %v", err.err, err.msg)
-	}
-	return err.msg
+func (err ServiceCatalogError) Error() string {
+	return fmt.Sprintf("%s: %v", err.err, err.msg)
 }
 
 type MissingClientID struct {

@@ -14,6 +14,15 @@ type Response struct {
 	_stream     bool
 }
 
+type ErrorWrapper struct {
+	error  ErrorMessage
+	status string
+}
+type ErrorMessage struct {
+	message string
+	detail  string
+}
+
 func NewResponse(response *grequests.Response, chunk_size int, resource Resource, stream bool) (R Response) {
 	if chunk_size == 0 {
 		chunk_size = 8192
@@ -77,28 +86,31 @@ func (R Response) _get_response() (*grequests.Response, error) {
 		return nil, err
 	}
 
-	//response_copy := (*response)
-
-	//potentialError := _sanitize(&response_copy)
-
-	switch code := response.StatusCode; {
-	case code == 200:
-		logger.Printf("ServiceNow responded with 200 code! Request completed successfully.\n")
-	case code == 201:
-		logger.Printf("ServiceNow responded with 201 code! Record created successfully.\n")
-	case code == 202:
-		logger.Printf("ServiceNow responded with 202 code! Error found.\n")
-	case code == 204:
-		logger.Printf("ServiceNow responded with 204 code! Record deleted successfully.\n")
-	case code <= 409 && code >= 400:
-		logger.Printf("ServiceNow responded with %v code! Client Side error detected. Error: %v\n", code, code)
-	case code <= 509 && code >= 500:
-		logger.Printf("ServiceNow responded with %v code! Server Side error detected\n", code)
-	default:
-		logger.Printf("Unknown error code %v returned. info: ", code)
+	if response.Ok {
+		switch code := response.StatusCode; {
+		case code == 200:
+			logger.Println("Request completed successfully.")
+		case code == 201:
+			logger.Println("Record created successfully.")
+		case code == 204:
+			logger.Println("Record deleted successfully.")
+		}
+		return response, nil
+	} else {
+		//TODO find a way to get the error code from the response and return it
+		logger.Printf("ServiceNow responded with %v code!", response.StatusCode)
+		switch code := response.StatusCode; {
+		case code == 202:
+			logger.Printf("ServiceNow responded with 202 code! Error found.\n")
+		case code <= 409 && code >= 400:
+			logger.Println("Client Side error detected.")
+		case code <= 509 && code >= 500:
+			logger.Println("Server Side error detected.")
+		default:
+			logger.Printf("Unknown error code %v returned. info: ", code)
+		}
+		return response, nil
 	}
-
-	return response, nil
 }
 
 func (R Response) First() (map[string]interface{}, error) {

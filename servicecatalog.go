@@ -53,3 +53,7 @@ func (S ServiceCatalog) Get(query interface{}) (resp Response, err error) {
 
 	return S._request().get(query, 0, 0, false, false, false, false)
 }
+
+func (S ServiceCatalog) Post() (resp Response, err error) {
+	return S._request().create(grequests.RequestOptions{})
+}
