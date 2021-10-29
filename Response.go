@@ -94,14 +94,14 @@ func (R Response) _get_response() (*grequests.Response, error) {
 			logger.Println("Record created successfully.")
 		case code == 204:
 			logger.Println("Record deleted successfully.")
+		case code == 202:
+			logger.Printf("ServiceNow responded with 202 code! Error found.\n")
 		}
 		return response, nil
 	} else {
 		//TODO find a way to get the error code from the response and return it
 		logger.Printf("ServiceNow responded with %v code!", response.StatusCode)
 		switch code := response.StatusCode; {
-		case code == 202:
-			logger.Printf("ServiceNow responded with 202 code! Error found.\n")
 		case code <= 409 && code >= 400:
 			logger.Println("Client Side error detected.")
 		case code <= 509 && code >= 500:
