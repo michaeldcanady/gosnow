@@ -31,7 +31,7 @@ func NewResource(base_url *url.URL, base_path, api_path string, session *greques
 	R.Url_builder = URLBuilderNew(base_url, base_path, api_path)
 	R.Parameters = NewParamsBuilder()
 
-	return R
+	return
 }
 
 func (R Resource) _toJSON(args map[string]string) (JSON []byte, err error) {
@@ -52,9 +52,6 @@ func (R Resource) path() string {
 }
 
 func (R Resource) _request() SnowRequest {
-
-	fmt.Println(R.Url_builder)
-
 	return SnowRequestNew(R.Parameters, R.Session, R.Url_builder, 0, R)
 }
 
@@ -80,7 +77,6 @@ func (R Resource) request(method string, path_append string, payload grequests.R
 }
 
 func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
-
 	if R.Base_path == "" {
 		err = errors.New("failed 'Get': Resource is nil")
 		logger.Println(err)

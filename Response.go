@@ -1,7 +1,7 @@
 package gosnow
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/levigross/grequests"
 )
@@ -14,6 +14,7 @@ type Response struct {
 	_stream     bool
 }
 
+//NewResponse generates a response struct
 func NewResponse(response *grequests.Response, chunk_size int, resource Resource, stream bool) (R Response) {
 	if chunk_size == 0 {
 		chunk_size = 8192
@@ -27,8 +28,7 @@ func NewResponse(response *grequests.Response, chunk_size int, resource Resource
 	return R
 }
 
-type Test interface{}
-
+//Sanatizes the response for the user
 func _sanitize(response *grequests.Response) []map[string]interface{} {
 	var dT = make(map[string]interface{})
 
@@ -54,10 +54,11 @@ sanitize:
 	return returnValue
 }
 
+//Buffers the reponse recieved to make usable by the user
 func (R Response) _get_buffered_response() ([]map[string]interface{}, int, error) {
 	response, err := R._get_response()
 	if err != nil {
-		err := fmt.Errorf("Could not buffer error due to response error")
+		//err := errors.New("could not buffer error due to response error")
 		return []map[string]interface{}{}, 0, err
 	}
 	if response.StatusCode == 204 {
@@ -73,38 +74,56 @@ func (R Response) _get_response() (*grequests.Response, error) {
 	response := R._response
 
 	if response == nil {
-		err := fmt.Errorf("Error: Response is empty")
+		err := errors.New("Error: Response is empty")
 		return nil, err
 	}
 
-	//response_copy := (*response)
-
-	//potentialError := _sanitize(&response_copy)
-
-	switch code := response.StatusCode; {
-	case code == 200:
-		logger.Printf("ServiceNow responded with 200 code! Request completed successfully.\n")
-	case code == 201:
-		logger.Printf("ServiceNow responded with 201 code! Record created successfully.\n")
-	case code == 202:
-		logger.Printf("ServiceNow responded with 202 code! Error found.\n")
-	case code == 204:
-		logger.Printf("ServiceNow responded with 204 code! Record deleted successfully.\n")
-	case code <= 409 && code >= 400:
-		logger.Printf("ServiceNow responded with %v code! Client Side error detected. Error: %v\n", code, code)
-	case code <= 509 && code >= 500:
-		logger.Printf("ServiceNow responded with %v code! Server Side error detected\n", code)
-	default:
-		logger.Printf("Unknown error code %v returned. info: ", code)
+	if response.Ok {
+		switch code := response.StatusCode; {
+		case code == 200:
+			logger.Println("request completed successfully.")
+		case code == 201:
+			logger.Println("record created successfully.")
+		case code == 204:
+			logger.Println("record deleted successfully.")
+		case code == 202:
+			logger.Println("serviceNow responded with 202 code! Error found.")
+		default:
+			logger.Printf("ServiceNow reponded with %v.", code)
+		}
+		return response, nil
+	} else {
+		//Used for the JSON recieved
+		reponseStruct := struct {
+			Error  map[string]interface{}
+			Status interface{}
+		}{}
+		//Used for the error code given to the user
+		var error ReponseError
+		//unmartial error into JSON
+		_ = response.JSON(&reponseStruct)
+		logger.Printf("serviceNow responded with %v code!", response.StatusCode)
+		error.msg = reponseStruct.Error["message"].(string)
+		switch code := response.StatusCode; {
+		case code <= 409 && code >= 400:
+			logger.Println("client Side error detected.")
+			error.err = "client Side"
+		case code <= 509 && code >= 500:
+			logger.Println("server Side error detected.")
+			error.err = "server Side"
+		default:
+			logger.Printf("unknown error code %v returned. info: ", code)
+			error.err = "unknown ServiceNow"
+		}
+		return nil, error
 	}
-
-	return response, nil
 }
 
+//First returns the first object in the map
 func (R Response) First() (map[string]interface{}, error) {
 	content, _, err := R.All()
 	if err != nil {
-		err = fmt.Errorf("could not retrieve first record because of upstream error")
+		//err = fmt.Errorf("could not retrieve first record because of upstream error")
 		return map[string]interface{}{}, err
 	}
 	logger.Println(content[0])
@@ -115,6 +134,7 @@ func (R Response) All() ([]map[string]interface{}, int, error) {
 	return R._get_buffered_response()
 }
 
+//Upload is used to attach an image to a request already made
 func (R Response) Upload(filePath string, multipart bool) (resp Response, err error) {
 
 	attachments, err := R._resource.attachments()

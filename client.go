@@ -1,6 +1,7 @@
 package gosnow
 
 import (
+	"errors"
 	"net/url"
 
 	"github.com/levigross/grequests"
@@ -64,4 +65,23 @@ func (C Client) Resource(apiPath string) (Resource, error) {
 	}
 
 	return NewResource(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
+}
+
+func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
+	basePath := "/api/sn_sc"
+	if !C.ready {
+		err := errors.New("failed to create service catalog, empty client")
+		logger.Println(err)
+		return ServiceCatalog{}, err
+	}
+
+	for _, path := range []string{apiPath, basePath} {
+		if !validate_path(path) {
+			err := errors.New("invalid web address")
+			logger.Println(err)
+			return ServiceCatalog{}, err
+		}
+	}
+
+	return NewServiceCatalog(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
 }
