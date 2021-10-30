@@ -47,3 +47,13 @@ func NewInvalidResource(msg string) error {
 		msg: msg,
 	}
 }
+
+
+type ReponseError struct {
+	msg string
+	err string
+}
+
+func (err ReponseError) Error() string {
+	return fmt.Sprintf("%s: %v", err.err, err.msg)
+}
