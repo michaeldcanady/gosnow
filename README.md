@@ -20,7 +20,22 @@ Create table instance
 ```golang
 CSTable, _ := client.Resource("/table/TableName")
 ```
-
+Get a table value
+```golang
+respose, _ := CSTable.Get(query)
+```
+Update a table value
+```golang
+respose, _ := CSTable.Update(query)
+```
+Delete a table value
+```golang
+respose, _ := CSTable.Delete(query)
+```
+Create a table value
+```golang
+respose, _ := CSTable.Create(query)
+```
 ## Contributing
 
 ## Author
