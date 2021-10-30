@@ -8,12 +8,17 @@
 
 GoSnow is a Golang wrapper for the Service Now API.
 
+Install gosnow
+```bash
+go get github.com/michaeldcanady/gosnow
+```
 Creating a client instance
-
 ``` golang
-
 client, _ := gosnow.New(username, password, instance)
-
+```
+Create table instance
+```golang
+CSTable, _ := client.Resource("/table/TableName")
 ```
 
 ## Contributing
