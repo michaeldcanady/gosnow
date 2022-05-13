@@ -126,8 +126,12 @@ func (R Response) First() (map[string]interface{}, error) {
 		//err = fmt.Errorf("could not retrieve first record because of upstream error")
 		return map[string]interface{}{}, err
 	}
-	logger.Println(content[0])
-	return content[0], nil
+	if len(content) != 0 {
+		logger.Println(content[0])
+		return content[0], nil
+	} else {
+		return map[string]interface{}{}, nil
+	}
 }
 
 func (R Response) All() ([]map[string]interface{}, int, error) {
@@ -147,4 +151,18 @@ func (R Response) Upload(filePath string, multipart bool) (resp Response, err er
 	sysID := response[0]["sys_id"].(string)
 
 	return attachments.Upload(sysID, filePath, multipart)
+}
+
+func (R Response) Get(limit int) (resp Response, err error) {
+
+	attachments, err := R._resource.attachments()
+	if err != nil {
+		return
+	}
+
+	response := _sanitize(R._response)
+
+	sysID := response[0]["sys_id"].(string)
+
+	return attachments.Get(sysID, limit)
 }

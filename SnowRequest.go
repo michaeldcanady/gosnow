@@ -36,6 +36,27 @@ func SnowRequestNew(parameters ParamsBuilder, session *grequests.Session, url_bu
 	return S
 }
 
+func (S SnowRequest) request(url string, query interface{}, limits int, offset int, stream bool, display_value, exclude_reference_link,
+	suppress_pagination_header bool, fields ...interface{}) (Response, error) {
+	S._url = url
+
+	if _, ok := query.(string); ok {
+		S.Parameters._sysparms["sysparm_query"] = query.(string)
+	} else if _, ok := query.(map[string]interface{}); ok {
+		S.Parameters.query(query.(map[string]interface{}))
+	} else {
+		log.Fatalf("%T is not a supported type for query. Please use string or map[string]interface{}", query)
+	}
+	S.Parameters.limit(limits)
+	S.Parameters.offset(offset)
+	S.Parameters.fields(fields...)
+	S.Parameters.display_value(display_value)
+	S.Parameters.exclude_reference_link(exclude_reference_link)
+	S.Parameters.suppress_pagination_header(suppress_pagination_header)
+
+	return S._get_response("GET", stream, grequests.RequestOptions{})
+}
+
 func (S SnowRequest) get(query interface{}, limits int, offset int, stream bool, display_value, exclude_reference_link,
 	suppress_pagination_header bool, fields ...interface{}) (Response, error) {
 	if _, ok := query.(string); ok {
@@ -150,17 +171,27 @@ func (S SnowRequest) update(query interface{}, payload grequests.RequestOptions)
 	return S._get_response("PUT", false, payload)
 }
 
-func (S SnowRequest) delete(query interface{}) (map[string]interface{}, error) {
+func (S SnowRequest) delete(query interface{}) (Response, error) {
 	offset := S.Parameters.getoffset()
 	display_value := S.Parameters.getdisplay_value()
 	exclude_reference_link := S.Parameters.getexclude_reference_link()
 	suppress_pagination_header := S.Parameters.getsuppress_pagination_header()
+
+	fmt.Println(query)
+
 	resp, _ := S.get(query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
+
 	record, _ := resp.First()
+
+	if len(record) == 0 {
+		return Response{}, errors.New("No record retrieve, unable to complete delete request")
+	}
+
 	S._url = S._get_custom_endpoint(record["sys_id"].(string))
+
 	resp, _ = S._get_response("DELETE", false, grequests.RequestOptions{})
 
-	return resp.First()
+	return resp, nil
 }
 
 func (S SnowRequest) custom(method string, pathAppend string, payload grequests.RequestOptions) (Response, error) {

@@ -67,9 +67,19 @@ func (R Resource) attachments() (A Attachment, err error) {
 		return
 	}
 
-	fmt.Println(path[1])
+	//fmt.Println(path[1])
 
 	return NewAttachment(copyResource, path[1]), err
+}
+
+func (R Resource) attachment() (A Attachment, err error) {
+	copyResource := R
+
+	copyResource.Url_builder = URLBuilderNew(copyResource.Base_url, copyResource.Base_path, "/attachment")
+
+	path := strings.Split(strings.Trim(R.Api_path, "/"), "/")
+
+	return NewAttachment(copyResource, path[0]), err
 }
 
 func (R Resource) request(method string, path_append string, payload grequests.RequestOptions) (resp Response, err error) {
@@ -89,7 +99,7 @@ func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fi
 	return R._request().get(query, limits, offset, stream, display_value, exclude_reference_link, suppress_pagination_header, fields...)
 }
 
-func (R Resource) Delete(query interface{}) (map[string]interface{}, error) {
+func (R Resource) Delete(query interface{}) (Response, error) {
 	return R._request().delete(query)
 }
 
