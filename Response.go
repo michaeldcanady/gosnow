@@ -56,7 +56,7 @@ sanitize:
 
 //Buffers the reponse recieved to make usable by the user
 func (R Response) _get_buffered_response() ([]map[string]interface{}, int, error) {
-	response, err := R._get_response()
+	response, err := R.getResponse()
 	if err != nil {
 		//err := errors.New("could not buffer error due to response error")
 		return []map[string]interface{}{}, 0, err
@@ -70,7 +70,7 @@ func (R Response) _get_buffered_response() ([]map[string]interface{}, int, error
 	return sanitized_response, len(sanitized_response), nil
 }
 
-func (R Response) _get_response() (*grequests.Response, error) {
+func (R Response) getResponse() (*grequests.Response, error) {
 	response := R._response
 
 	if response == nil {

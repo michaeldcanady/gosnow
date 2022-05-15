@@ -57,7 +57,7 @@ func (C Client) Resource(apiPath string) (Resource, error) {
 	}
 
 	for _, path := range []string{apiPath, basePath} {
-		if !validate_path(path) {
+		if !isValidatePath(path) {
 			err := NewInvalidResource("invalid web address")
 			logger.Println(err)
 			return Resource{}, err
@@ -82,7 +82,7 @@ func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
 	}
 
 	for _, path := range []string{apiPath, basePath} {
-		if !validate_path(path) {
+		if !isValidatePath(path) {
 			err := errors.New("invalid web address")
 			logger.Println(err)
 			return ServiceCatalog{}, err

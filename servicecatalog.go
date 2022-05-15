@@ -9,22 +9,22 @@ import (
 )
 
 type ServiceCatalog struct {
-	Base_url    *url.URL
-	Base_path   string
-	Api_path    string
+	BaseURL     *url.URL
+	BasePath    string
+	ApiPath     string
 	Session     *grequests.Session
 	ChunkSize   int
 	Url_builder URLBuilder
 	Parameters  ParamsBuilder
 }
 
-func NewServiceCatalog(base_url *url.URL, base_path, api_path string, session *grequests.Session, chunkSize int) (S ServiceCatalog) {
-	S.Base_url = base_url
-	S.Base_path = base_path
-	S.Api_path = api_path
+func NewServiceCatalog(BaseURL *url.URL, BasePath, ApiPath string, session *grequests.Session, chunkSize int) (S ServiceCatalog) {
+	S.BaseURL = BaseURL
+	S.BasePath = BasePath
+	S.ApiPath = ApiPath
 	S.Session = session
 	S.ChunkSize = chunkSize
-	S.Url_builder = URLBuilderNew(base_url, base_path, api_path)
+	S.Url_builder = URLBuilderNew(BaseURL, BasePath, ApiPath)
 	S.Parameters = NewParamsBuilder()
 
 	return
@@ -37,7 +37,7 @@ func (S ServiceCatalog) String() string {
 
 // path returns a string representation of the path
 func (S ServiceCatalog) path() string {
-	return fmt.Sprintln(S.Base_path + S.Api_path)
+	return fmt.Sprintln(S.BasePath + S.ApiPath)
 }
 
 func (S ServiceCatalog) _request() SnowRequest {
@@ -45,7 +45,7 @@ func (S ServiceCatalog) _request() SnowRequest {
 }
 
 func (S ServiceCatalog) Get(query interface{}) (resp Response, err error) {
-	if S.Base_path == "" {
+	if S.BasePath == "" {
 		err = errors.New("failed 'Get': ServiceCatalog is nil")
 		logger.Println(err)
 		return resp, err
