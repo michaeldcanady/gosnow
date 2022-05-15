@@ -1,45 +1,51 @@
 package gosnow
 
-import(
-  "regexp"
-  "fmt"
-  "net/url"
+import (
+	"fmt"
+	"net/url"
+	"regexp"
 )
 
+const pathFormat string = "^/(?:[._a-zA-Z0-9-]/?)+[^/]$"
+
 type URLBuilder struct {
-  Base_url  *url.URL
-  Base_path string
-  Api_path  string
-  Full_path string
-  _resource_url string
+	BaseURL       *url.URL
+	BasePath      string
+	ApiPath       string
+	Full_path     string
+	_resource_url string
 }
 
-func URLBuilderNew(base_url *url.URL, base_path, api_path string) (U URLBuilder){
-  U.Base_url  = base_url
-  U.Base_path = base_path
-  U.Api_path  = api_path
-  U.Full_path = fmt.Sprintf("%s",base_path + api_path)
-  U._resource_url = fmt.Sprintf("%s",base_url.String() + U.Full_path)
+func URLBuilderNew(BaseURL *url.URL, BasePath, ApiPath string) (U URLBuilder) {
+	U.BaseURL = BaseURL
+	U.BasePath = BasePath
+	U.ApiPath = ApiPath
+	U.Full_path = fmt.Sprintf("%s", BasePath+ApiPath)
+	U._resource_url = fmt.Sprintf("%s", BaseURL.String()+U.Full_path)
 
-  return U
+	return U
 }
 
-func validate_path(path string) (bool) {
-  if match, _ := regexp.MatchString("^/(?:[._a-zA-Z0-9-]/?)+[^/]$",path); !match {
-    logger.Printf("Path validation failed - Expected: '/<component>[/component], got: %s\n", path)
-    return false
-  }
-  return true
+//isValidatePath assesses whether the given path is valid
+//
+//expected format is /<component>[/component]
+func isValidatePath(path string) bool {
+	if match, _ := regexp.MatchString(pathFormat, path); !match {
+		logger.Printf("Path validation failed - Expected: '/<component>[/component], got: %s\n", path)
+		return false
+	}
+	return true
 }
 
-func (U URLBuilder) get_appended_custom(path_component string) (string){
-  if !validate_path(path_component){
-    return ""
-  }
+func (U URLBuilder) getAppendedCustom(path_component string) string {
+	if !isValidatePath(path_component) {
+		return ""
+	}
 
-  return U._resource_url + path_component
+	return U._resource_url + path_component
 }
 
-func (U URLBuilder) getURL() string{
-  return fmt.Sprintf("%s%s", U.Base_url, U.Full_path)
+//getURL returns string format of URL
+func (U URLBuilder) getURL() string {
+	return fmt.Sprintf("%s%s", U.BaseURL, U.Full_path)
 }

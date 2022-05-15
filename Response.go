@@ -56,7 +56,7 @@ sanitize:
 
 //Buffers the reponse recieved to make usable by the user
 func (R Response) _get_buffered_response() ([]map[string]interface{}, int, error) {
-	response, err := R._get_response()
+	response, err := R.getResponse()
 	if err != nil {
 		//err := errors.New("could not buffer error due to response error")
 		return []map[string]interface{}{}, 0, err
@@ -70,7 +70,7 @@ func (R Response) _get_buffered_response() ([]map[string]interface{}, int, error
 	return sanitized_response, len(sanitized_response), nil
 }
 
-func (R Response) _get_response() (*grequests.Response, error) {
+func (R Response) getResponse() (*grequests.Response, error) {
 	response := R._response
 
 	if response == nil {
@@ -126,8 +126,12 @@ func (R Response) First() (map[string]interface{}, error) {
 		//err = fmt.Errorf("could not retrieve first record because of upstream error")
 		return map[string]interface{}{}, err
 	}
-	logger.Println(content[0])
-	return content[0], nil
+	if len(content) != 0 {
+		logger.Println(content[0])
+		return content[0], nil
+	} else {
+		return map[string]interface{}{}, nil
+	}
 }
 
 func (R Response) All() ([]map[string]interface{}, int, error) {
@@ -147,4 +151,18 @@ func (R Response) Upload(filePath string, multipart bool) (resp Response, err er
 	sysID := response[0]["sys_id"].(string)
 
 	return attachments.Upload(sysID, filePath, multipart)
+}
+
+func (R Response) Get(limit int) (resp Response, err error) {
+
+	attachments, err := R._resource.attachments()
+	if err != nil {
+		return
+	}
+
+	response := _sanitize(R._response)
+
+	sysID := response[0]["sys_id"].(string)
+
+	return attachments.Get(sysID, limit)
 }

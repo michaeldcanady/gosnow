@@ -17,7 +17,7 @@ type Client struct {
 	BaseURL  *url.URL
 }
 
-// Creates a new Client struct using the provided username, password, and instance
+// New Creates a new Client struct using the provided username, password, and instance
 func New(username, password, instance string) (C Client, err error) {
 
 	if username == "" {
@@ -57,7 +57,7 @@ func (C Client) Resource(apiPath string) (Resource, error) {
 	}
 
 	for _, path := range []string{apiPath, basePath} {
-		if !validate_path(path) {
+		if !isValidatePath(path) {
 			err := NewInvalidResource("invalid web address")
 			logger.Println(err)
 			return Resource{}, err
@@ -65,6 +65,12 @@ func (C Client) Resource(apiPath string) (Resource, error) {
 	}
 
 	return NewResource(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
+}
+
+func (C Client) Attachments() (Attachment, error) {
+	resource, _ := C.Resource("/attachment")
+
+	return resource.attachment()
 }
 
 func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
@@ -76,7 +82,7 @@ func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
 	}
 
 	for _, path := range []string{apiPath, basePath} {
-		if !validate_path(path) {
+		if !isValidatePath(path) {
 			err := errors.New("invalid web address")
 			logger.Println(err)
 			return ServiceCatalog{}, err

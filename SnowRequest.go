@@ -36,6 +36,27 @@ func SnowRequestNew(parameters ParamsBuilder, session *grequests.Session, url_bu
 	return S
 }
 
+func (S SnowRequest) request(url string, query interface{}, limits int, offset int, stream bool, display_value, exclude_reference_link,
+	suppress_pagination_header bool, fields ...interface{}) (Response, error) {
+	S._url = url
+
+	if _, ok := query.(string); ok {
+		S.Parameters._sysparms["sysparm_query"] = query.(string)
+	} else if _, ok := query.(map[string]interface{}); ok {
+		S.Parameters.query(query.(map[string]interface{}))
+	} else {
+		log.Fatalf("%T is not a supported type for query. Please use string or map[string]interface{}", query)
+	}
+	S.Parameters.limit(limits)
+	S.Parameters.offset(offset)
+	S.Parameters.fields(fields...)
+	S.Parameters.display_value(display_value)
+	S.Parameters.exclude_reference_link(exclude_reference_link)
+	S.Parameters.suppress_pagination_header(suppress_pagination_header)
+
+	return S.getResponse("GET", stream, grequests.RequestOptions{})
+}
+
 func (S SnowRequest) get(query interface{}, limits int, offset int, stream bool, display_value, exclude_reference_link,
 	suppress_pagination_header bool, fields ...interface{}) (Response, error) {
 	if _, ok := query.(string); ok {
@@ -52,22 +73,22 @@ func (S SnowRequest) get(query interface{}, limits int, offset int, stream bool,
 	S.Parameters.exclude_reference_link(exclude_reference_link)
 	S.Parameters.suppress_pagination_header(suppress_pagination_header)
 
-	return S._get_response("GET", stream, grequests.RequestOptions{})
+	return S.getResponse("GET", stream, grequests.RequestOptions{})
 }
 
 func (S SnowRequest) create(payload grequests.RequestOptions) (Response, error) {
 
-	response, err := S._get_response("POST", false, payload)
+	response, err := S.getResponse("POST", false, payload)
 	if err != nil {
 		err = fmt.Errorf("response Error: %v", err)
 		logger.Println(err)
 		return Response{}, err
 	}
 	fmt.Println(response._response.StatusCode)
-	return S._get_response("POST", false, payload)
+	return S.getResponse("POST", false, payload)
 }
 
-func (S SnowRequest) _get_response(method string, stream bool, payload grequests.RequestOptions) (Response, error) {
+func (S SnowRequest) getResponse(method string, stream bool, payload grequests.RequestOptions) (Response, error) {
 	var response *grequests.Response
 	var err error
 	if method == "GET" {
@@ -89,8 +110,6 @@ func (S SnowRequest) _get_response(method string, stream bool, payload grequests
 			payload1 := (*S.Parameters.as_dict())
 			payload1.Headers = payload.Headers
 			payload1.JSON = payload.JSON
-
-			fmt.Println(payload1)
 
 			response, err = S.Session.Post(S._url, &payload1)
 			if err != nil {
@@ -118,12 +137,12 @@ func (S SnowRequest) _get_response(method string, stream bool, payload grequests
 	return NewResponse(response, S.Chunk_size, S.Resource, stream), nil
 }
 
-func (S SnowRequest) _get_custom_endpoint(value string) string {
+func (S SnowRequest) getCustomEndpoint(value string) string {
 	fmt.Printf("%s'\n", value)
 	if !strings.HasPrefix(value, "/") {
 		value = fmt.Sprintf("/%s", value)
 	}
-	return S.URLBuilder.get_appended_custom(value)
+	return S.URLBuilder.getAppendedCustom(value)
 }
 
 func (S SnowRequest) update(query interface{}, payload grequests.RequestOptions) (Response, error) {
@@ -145,30 +164,38 @@ func (S SnowRequest) update(query interface{}, payload grequests.RequestOptions)
 	if err != nil {
 		return Response{}, errors.New("could not update due to querying error")
 	}
-	S._url = S._get_custom_endpoint(first_record["sys_id"].(string))
+	S._url = S.getCustomEndpoint(first_record["sys_id"].(string))
 
-	return S._get_response("PUT", false, payload)
+	return S.getResponse("PUT", false, payload)
 }
 
-func (S SnowRequest) delete(query interface{}) (map[string]interface{}, error) {
+func (S SnowRequest) delete(query interface{}) (Response, error) {
 	offset := S.Parameters.getoffset()
 	display_value := S.Parameters.getdisplay_value()
 	exclude_reference_link := S.Parameters.getexclude_reference_link()
 	suppress_pagination_header := S.Parameters.getsuppress_pagination_header()
-	resp, _ := S.get(query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
-	record, _ := resp.First()
-	S._url = S._get_custom_endpoint(record["sys_id"].(string))
-	resp, _ = S._get_response("DELETE", false, grequests.RequestOptions{})
 
-	return resp.First()
+	resp, _ := S.get(query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
+
+	record, _ := resp.First()
+
+	if len(record) == 0 {
+		return Response{}, errors.New("No record retrieve, unable to complete delete request")
+	}
+
+	S._url = S.getCustomEndpoint(record["sys_id"].(string))
+
+	resp, _ = S.getResponse("DELETE", false, grequests.RequestOptions{})
+
+	return resp, nil
 }
 
 func (S SnowRequest) custom(method string, pathAppend string, payload grequests.RequestOptions) (Response, error) {
 
 	if pathAppend != "" {
 		fmt.Printf("%s'\n", pathAppend)
-		S._url = S._get_custom_endpoint(pathAppend)
+		S._url = S.getCustomEndpoint(pathAppend)
 	}
 
-	return S._get_response(method, false, payload)
+	return S.getResponse(method, false, payload)
 }
