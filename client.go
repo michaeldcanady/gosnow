@@ -3,9 +3,23 @@ package gosnow
 import (
 	"errors"
 	"net/url"
+	"regexp"
 
 	"github.com/levigross/grequests"
 )
+
+const pathFormat string = "^/(?:[._a-zA-Z0-9-]/?)+[^/]$"
+
+//isValidatePath assesses whether the given path is valid
+//
+//expected format is /<component>[/component]
+func isValidatePath(path string) bool {
+	if match, _ := regexp.MatchString(pathFormat, path); !match {
+		logger.Printf("Path validation failed - Expected: '/<component>[/component], got: %s\n", path)
+		return false
+	}
+	return true
+}
 
 //Client used as main client for service-now
 type Client struct {
@@ -91,6 +105,7 @@ func (C Client) Table(tableName string) (Resource, error) {
 	return NewResource(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
 }
 
+//Attachments returns a new instance of the Attachments API
 func (C Client) Attachments() (Attachment, error) {
 	resource, _ := C.Resource("/attachment")
 

@@ -8,21 +8,26 @@ import (
 	"github.com/levigross/grequests"
 )
 
+//HASMAGIC if the attachment has magic
+//currently not in use
 var (
 	HASMAGIC = false
 )
 
+//Attachment the ServiceNow Attachments API
 type Attachment struct {
 	resource  Resource
 	TableName string
 }
 
+//NewAttachment returns new instance of the attachments API
 func NewAttachment(resource Resource, TableName string) (A Attachment) {
 	A.resource = resource
 	A.TableName = TableName
 	return
 }
 
+//Get used to query a specific attachment
 func (A Attachment) Get(sys_id string, limit int) (Response, error) {
 	if sys_id == "" {
 		query := map[string]interface{}{"table_name": A.TableName}
@@ -40,6 +45,7 @@ func (A Attachment) GetTicket(sys_id string, limit int) (Response, error) {
 	return A.resource.Get(map[string]interface{}{"table_sys_id": sys_id, "table_name": A.TableName}, limit, 0, true, nil)
 }
 
+//Upload new attachment to table
 func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, error) {
 	var payload grequests.RequestOptions
 
@@ -69,11 +75,13 @@ func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, 
 	return resource.request("POST", path_append, payload)
 }
 
+//Delete delete a specific attachment by sys_id
 func (A Attachment) Delete(sys_id string) (Response, error) {
 	query := map[string]interface{}{"sys_id": sys_id}
 	return A.resource.Delete(query)
 }
 
+//Download download specified attachment to desintationPath from ServiceNow
 func (A Attachment) Download(sys_id string, destinationPath string) (Response, error) {
 	response, err := A.Get(sys_id, 1)
 

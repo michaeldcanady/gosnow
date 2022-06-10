@@ -7,20 +7,20 @@ import (
 	"github.com/levigross/grequests"
 )
 
+//ServiceCatalog the service catalog API
 type ServiceCatalog struct {
-	url         *url.URL
-	Session     *grequests.Session
-	ChunkSize   int
-	Url_builder URLBuilder
-	Parameters  ParamsBuilder
+	url        *url.URL
+	Session    *grequests.Session
+	ChunkSize  int
+	Parameters ParamsBuilder
 }
 
+//NewServiceCatalog returns a new instance of the service catalog API
 func NewServiceCatalog(BaseURL *url.URL, BasePath, ApiPath string, session *grequests.Session, chunkSize int) (S ServiceCatalog) {
 	S.url = BaseURL
 	S.url.Path = fmt.Sprintf("%s%s", BasePath, ApiPath)
 	S.Session = session
 	S.ChunkSize = chunkSize
-	S.Url_builder = URLBuilderNew(BaseURL, BasePath, ApiPath)
 	S.Parameters = NewParamsBuilder()
 
 	return
