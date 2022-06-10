@@ -17,6 +17,8 @@ type Client struct {
 	BaseURL  *url.URL
 }
 
+const sharedBase = "/api"
+
 // New Creates a new Client struct using the provided username, password, and instance
 func New(username, password, instance string) (C Client, err error) {
 
@@ -48,7 +50,7 @@ func New(username, password, instance string) (C Client, err error) {
 // Resource is used to create table resources
 // Each new table that can be queried needs its own .Resource
 func (C Client) Resource(apiPath string) (Resource, error) {
-	basePath := "/api/now"
+	basePath := sharedBase + "/now"
 
 	if !C.ready {
 		err := NewInvalidResource("failed to create resource, empty client.")
@@ -67,14 +69,37 @@ func (C Client) Resource(apiPath string) (Resource, error) {
 	return NewResource(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
 }
 
+//Table returns a new instance of the Table API
+func (C Client) Table(tableName string) (Resource, error) {
+	basePath := sharedBase + "/now"
+	apiPath := "/table/" + tableName
+
+	if !C.ready {
+		err := NewInvalidResource("failed to create resource, empty client.")
+		logger.Println(err)
+		return Resource{}, err
+	}
+
+	for _, path := range []string{apiPath, basePath} {
+		if !isValidatePath(path) {
+			err := errors.New("invalid web address")
+			logger.Println(err)
+			return Resource{}, err
+		}
+	}
+
+	return NewResource(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
+}
+
 func (C Client) Attachments() (Attachment, error) {
 	resource, _ := C.Resource("/attachment")
 
 	return resource.attachment()
 }
 
+//ServiceCatalog returns a new instance of the Service Catalog API
 func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
-	basePath := "/api/sn_sc"
+	basePath := sharedBase + "/sn_sc"
 	if !C.ready {
 		err := errors.New("failed to create service catalog, empty client")
 		logger.Println(err)

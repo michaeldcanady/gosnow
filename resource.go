@@ -2,20 +2,17 @@ package gosnow
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"log"
 	"net/url"
-	"strings"
 
 	"github.com/levigross/grequests"
 )
 
 type Resource struct {
-	BaseURL     *url.URL
-	BasePath    string
-	ApiPath     string
+	url         *url.URL
 	Session     *grequests.Session
+	tableName   string
 	ChunkSize   int
 	Url_builder URLBuilder
 	Parameters  ParamsBuilder
@@ -23,11 +20,10 @@ type Resource struct {
 
 //NewResource returns a new serviceNow API resource
 func NewResource(BaseURL *url.URL, BasePath, ApiPath string, session *grequests.Session, chunkSize int) (R Resource) {
-
-	R.BaseURL = BaseURL
-	R.BasePath = BasePath
-	R.ApiPath = ApiPath
+	R.url = BaseURL
+	R.url.Path = fmt.Sprintf("%s%s", BasePath, ApiPath)
 	R.Session = session
+	R.tableName = ApiPath
 	R.ChunkSize = chunkSize
 	R.Url_builder = URLBuilderNew(BaseURL, BasePath, ApiPath)
 	R.Parameters = NewParamsBuilder()
@@ -49,38 +45,27 @@ func (R Resource) String() string {
 }
 
 func (R Resource) path() string {
-	return fmt.Sprintln(R.BasePath + R.ApiPath)
+	return fmt.Sprintln(R.url.Path)
 }
 
-func (R Resource) _request() SnowRequest {
-	return SnowRequestNew(R.Parameters, R.Session, R.Url_builder, 0, R)
+func (R Resource) _request() Request {
+	return NewRequest(R.Parameters, R.Session, R.url, 0, R)
 }
 
 func (R Resource) attachments() (A Attachment, err error) {
 	copyResource := R
 
-	copyResource.Url_builder = URLBuilderNew(copyResource.BaseURL, copyResource.BasePath, "/attachment")
+	copyResource.url.Path = "/api/now/attachment"
 
-	path := strings.Split(strings.Trim(R.ApiPath, "/"), "/")
-
-	if path[0] != "table" {
-		err = errors.New("the attachment API can only be used with the table API")
-		return
-	}
-
-	//fmt.Println(path[1])
-
-	return NewAttachment(copyResource, path[1]), err
+	return NewAttachment(copyResource, R.tableName), err
 }
 
 func (R Resource) attachment() (A Attachment, err error) {
 	copyResource := R
 
-	copyResource.Url_builder = URLBuilderNew(copyResource.BaseURL, copyResource.BasePath, "/attachment")
+	copyResource.url.Path = "/api/now/attachment"
 
-	path := strings.Split(strings.Trim(R.ApiPath, "/"), "/")
-
-	return NewAttachment(copyResource, path[0]), err
+	return NewAttachment(copyResource, R.tableName), err
 }
 
 func (R Resource) request(method string, path_append string, payload grequests.RequestOptions) (resp Response, err error) {
@@ -88,11 +73,6 @@ func (R Resource) request(method string, path_append string, payload grequests.R
 }
 
 func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
-	if R.BasePath == "" {
-		err = errors.New("failed 'Get': Resource is nil")
-		logger.Println(err)
-		return resp, err
-	}
 	display_value := R.Parameters._sysparms["sysparm_display_value"].(bool)
 	exclude_reference_link := R.Parameters._sysparms["sysparm_exclude_reference_link"].(bool)
 	suppress_pagination_header := R.Parameters._sysparms["sysparm_suppress_pagination_header"].(bool)

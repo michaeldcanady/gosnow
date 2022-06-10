@@ -138,6 +138,7 @@ func (R Response) All() ([]map[string]interface{}, int, error) {
 	return R._get_buffered_response()
 }
 
+/*
 //Upload is used to attach an image to a request already made
 func (R Response) Upload(filePath string, multipart bool) (resp Response, err error) {
 
@@ -152,7 +153,8 @@ func (R Response) Upload(filePath string, multipart bool) (resp Response, err er
 
 	return attachments.Upload(sysID, filePath, multipart)
 }
-
+*/
+/*
 func (R Response) Get(limit int) (resp Response, err error) {
 
 	attachments, err := R._resource.attachments()
@@ -166,3 +168,4 @@ func (R Response) Get(limit int) (resp Response, err error) {
 
 	return attachments.Get(sysID, limit)
 }
+*/
