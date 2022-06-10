@@ -19,18 +19,21 @@ client, _ := gosnow.New(username, password, instance)
 ```
 Create table instance
 ```golang
-CSTable, _ := client.Resource("/table/TableName")
+CSTable, _ := client.Table("TableName")
 ```
 Get a table value
 ```golang
-respose, _ := CSTable.Get(query)
+query := map[string]interface{}{"field": "value"}
+respose, _ := CSTable.Get(query, )
 ```
 Update a table value
 ```golang
-respose, _ := CSTable.Update(query)
+query := map[string]interface{}{"field": "value"}
+respose, _ := CSTable.Update(query, 1, 0, true, nil)
 ```
 Delete a table value
 ```golang
+query := map[string]interface{}{"field": "value"}
 respose, _ := CSTable.Delete(query)
 ```
 Create a table value
