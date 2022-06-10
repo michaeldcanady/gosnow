@@ -6,6 +6,7 @@ import (
 	"github.com/levigross/grequests"
 )
 
+//Response a ServiceNow API response
 type Response struct {
 	_response   *grequests.Response
 	_chunk_size int
@@ -119,7 +120,7 @@ func (R Response) getResponse() (*grequests.Response, error) {
 	}
 }
 
-//First returns the first object in the map
+//First returns the first record in the map
 func (R Response) First() (map[string]interface{}, error) {
 	content, _, err := R.All()
 	if err != nil {
@@ -134,6 +135,7 @@ func (R Response) First() (map[string]interface{}, error) {
 	}
 }
 
+//All returns all found serviceNow records in a map slice
 func (R Response) All() ([]map[string]interface{}, int, error) {
 	return R._get_buffered_response()
 }

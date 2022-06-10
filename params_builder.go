@@ -8,11 +8,13 @@ import (
 	"github.com/levigross/grequests"
 )
 
+//ParamsBuilder representation of ServiceNow Parameter
 type ParamsBuilder struct {
 	_custom_params map[string]interface{}
 	_sysparms      map[string]interface{}
 }
 
+// NewParamsBuilder returns new instance of builder for ServiceNow parameters
 func NewParamsBuilder() (P ParamsBuilder) {
 	P._sysparms = map[string]interface{}{
 		"sysparm_query":                      "",
@@ -28,6 +30,7 @@ func NewParamsBuilder() (P ParamsBuilder) {
 	return P
 }
 
+//AddCustom used to add custom parameters
 func (P ParamsBuilder) AddCustom(params map[string]interface{}) {
 
 	if P._custom_params == nil {

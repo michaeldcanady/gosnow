@@ -10,7 +10,7 @@ import (
 	"github.com/levigross/grequests"
 )
 
-/* Request used to preform requests against the ServiceNow API. Contains the querying URL and the parameters
+/* Request used to preform requests against the ServiceNow APIs. Contains the querying URL and the parameters
  */
 type Request struct {
 	Session        *grequests.Session
@@ -22,7 +22,7 @@ type Request struct {
 	Parameters     ParamsBuilder
 }
 
-//NewRequest
+//NewRequest used to create a new serviceNow request
 func NewRequest(parameters ParamsBuilder, session *grequests.Session, url_builder *url.URL, chunk_size int, resource interface{}) (R Request) {
 	R.Parameters = parameters
 	R.Session = session
