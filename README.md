@@ -7,6 +7,10 @@
 ![GitHub](https://img.shields.io/github/license/michaeldcanady/gosnow?style=plastic)
 ![GitHub all releases](https://img.shields.io/github/downloads/michaeldcanady/gosnow/total?style=plastic)
 
+# Current Ideas:
+- [ ] Remove need for "resource"
+- [ ] Build out Tables API
+
 GoSnow is a Golang wrapper for the Service Now API.
 
 Install gosnow
