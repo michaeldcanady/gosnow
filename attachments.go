@@ -14,30 +14,30 @@ var (
 
 type Attachment struct {
 	resource  Resource
-	tableName string
+	TableName string
 }
 
-func NewAttachment(resource Resource, tableName string) (A Attachment) {
+func NewAttachment(resource Resource, TableName string) (A Attachment) {
 	A.resource = resource
-	A.tableName = tableName
+	A.TableName = TableName
 	return
 }
 
 func (A Attachment) Get(sys_id string, limit int) (Response, error) {
 	if sys_id == "" {
-		query := map[string]interface{}{"table_name": A.tableName}
+		query := map[string]interface{}{"table_name": A.TableName}
 		return A.resource.Get(query, 1, 0, true, nil)
 	}
-	//return A.resource.Get(map[string]interface{}{"table_sys_id": sys_id, "table_name": A.tableName}, limit, 0, true, nil)
+	//return A.resource.Get(map[string]interface{}{"table_sys_id": sys_id, "table_name": A.TableName}, limit, 0, true, nil)
 	return A.resource.Get(map[string]interface{}{"sys_id": sys_id}, limit, 0, true, nil)
 }
 
 func (A Attachment) GetTicket(sys_id string, limit int) (Response, error) {
 	if sys_id == "" {
-		query := map[string]interface{}{"table_name": A.tableName}
+		query := map[string]interface{}{"table_name": A.TableName}
 		return A.resource.Get(query, 1, 0, true, nil)
 	}
-	return A.resource.Get(map[string]interface{}{"table_sys_id": sys_id, "table_name": A.tableName}, limit, 0, true, nil)
+	return A.resource.Get(map[string]interface{}{"table_sys_id": sys_id, "table_name": A.TableName}, limit, 0, true, nil)
 }
 
 func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, error) {
@@ -47,7 +47,7 @@ func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, 
 
 	resource := A.resource
 	name := filepath.Base(file_path)
-	resource.Parameters.AddCustom(map[string]interface{}{"table_name": A.tableName, "table_sys_id": sys_id, "file_name": name})
+	resource.Parameters.AddCustom(map[string]interface{}{"table_name": A.TableName, "table_sys_id": sys_id, "file_name": name})
 	payload.JSON, _ = os.ReadFile(file_path)
 
 	var path_append string
@@ -89,7 +89,7 @@ func (A Attachment) Download(sys_id string, destinationPath string) (Response, e
 	downloadLink := attachment["download_link"].(string)
 
 	request := A.resource._request()
-	request._url = downloadLink
+	request.url = downloadLink
 	resp, err := request.Session.Get(downloadLink, nil)
 
 	downloadPath := destinationPath + "\\" + attachment["file_name"].(string)
