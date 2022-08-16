@@ -135,14 +135,6 @@ func (R Request) getCustomEndpoint(value string) string {
 }
 
 func (R Request) create(payload grequests.RequestOptions) (Response, error) {
-
-	response, err := R.getResponse("POST", false, payload)
-	if err != nil {
-		err = fmt.Errorf("response Error: %v", err)
-		logger.Println(err)
-		return Response{}, err
-	}
-	fmt.Println(response._response.StatusCode)
 	return R.getResponse("POST", false, payload)
 }
 
