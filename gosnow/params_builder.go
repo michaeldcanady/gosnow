@@ -8,7 +8,7 @@ import (
 	"github.com/levigross/grequests"
 )
 
-//ParamsBuilder representation of ServiceNow Parameter
+// ParamsBuilder representation of ServiceNow Parameter
 type ParamsBuilder struct {
 	_custom_params map[string]interface{}
 	_sysparms      map[string]interface{}
@@ -30,8 +30,8 @@ func NewParamsBuilder() (P ParamsBuilder) {
 	return P
 }
 
-//AddCustom used to add custom parameters
-func (P ParamsBuilder) AddCustom(params map[string]interface{}) {
+// AddCustom used to add custom parameters
+func (P *ParamsBuilder) AddCustom(params map[string]interface{}) {
 
 	if P._custom_params == nil {
 		P._custom_params = make(map[string]interface{})
@@ -44,7 +44,7 @@ func (P ParamsBuilder) AddCustom(params map[string]interface{}) {
 	P._custom_params = params
 }
 
-func (P ParamsBuilder) stringify_query(query map[string]interface{}) string {
+func (P *ParamsBuilder) stringify_query(query map[string]interface{}) string {
 	var querySlice []string
 	for k, v := range query {
 		querySlice = append(querySlice, fmt.Sprintf("%v=%v", k, v))
@@ -52,7 +52,7 @@ func (P ParamsBuilder) stringify_query(query map[string]interface{}) string {
 	return strings.Join(querySlice, "^")
 }
 
-func (P ParamsBuilder) limit(limit int) {
+func (P *ParamsBuilder) limit(limit int) {
 	if limit != 0 {
 		P._sysparms["sysparm_limit"] = limit
 	} else {
@@ -60,7 +60,7 @@ func (P ParamsBuilder) limit(limit int) {
 	}
 }
 
-func (P ParamsBuilder) getlimit() (int, error) {
+func (P *ParamsBuilder) getlimit() (int, error) {
 	if _, ok := P._sysparms["sysparm_limit"].(int); !ok {
 		err := fmt.Errorf("'sysparm_limit' is %t not int like expected", P._sysparms["sysparm_limit"])
 		logger.Println(err)
@@ -69,39 +69,39 @@ func (P ParamsBuilder) getlimit() (int, error) {
 	return P._sysparms["sysparm_limit"].(int), nil
 }
 
-func (P ParamsBuilder) display_value(display_value bool) {
+func (P *ParamsBuilder) display_value(display_value bool) {
 	P._sysparms["sysparm_display_value"] = display_value
 }
 
-func (P ParamsBuilder) getdisplay_value() bool {
+func (P *ParamsBuilder) getdisplay_value() bool {
 	return P._sysparms["sysparm_display_value"].(bool)
 }
 
-func (P ParamsBuilder) exclude_reference_link(exclude_reference_link bool) {
+func (P *ParamsBuilder) exclude_reference_link(exclude_reference_link bool) {
 	P._sysparms["sysparm_exclude_reference_link"] = exclude_reference_link
 }
 
-func (P ParamsBuilder) getexclude_reference_link() bool {
+func (P *ParamsBuilder) getexclude_reference_link() bool {
 	return P._sysparms["sysparm_exclude_reference_link"].(bool)
 }
 
-func (P ParamsBuilder) suppress_pagination_header(suppress_pagination_header bool) {
+func (P *ParamsBuilder) suppress_pagination_header(suppress_pagination_header bool) {
 	P._sysparms["sysparm_suppress_pagination_header"] = suppress_pagination_header
 }
 
-func (P ParamsBuilder) getsuppress_pagination_header() bool {
+func (P *ParamsBuilder) getsuppress_pagination_header() bool {
 	return P._sysparms["sysparm_suppress_pagination_header"].(bool)
 }
 
-func (P ParamsBuilder) offset(offset int) {
+func (P *ParamsBuilder) offset(offset int) {
 	P._sysparms["sysparm_offset"] = offset
 }
 
-func (P ParamsBuilder) getoffset() int {
+func (P *ParamsBuilder) getoffset() int {
 	return P._sysparms["sysparm_offset"].(int)
 }
 
-func (P ParamsBuilder) fields(fields ...interface{}) {
+func (P *ParamsBuilder) fields(fields ...interface{}) {
 	max := len(fields) - 1
 	var f string
 	for i, field := range fields {
@@ -114,11 +114,11 @@ func (P ParamsBuilder) fields(fields ...interface{}) {
 	P._sysparms["sysparm_fields"] = f
 }
 
-func (P ParamsBuilder) query(query map[string]interface{}) {
+func (P *ParamsBuilder) query(query map[string]interface{}) {
 	P._sysparms["sysparm_query"] = P.stringify_query(query)
 }
 
-func (P ParamsBuilder) as_dict() *grequests.RequestOptions {
+func (P *ParamsBuilder) as_dict() *grequests.RequestOptions {
 	sysparms := grequests.RequestOptions{
 		Params: make(map[string]string),
 	}

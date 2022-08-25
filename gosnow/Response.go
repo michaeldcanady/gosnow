@@ -6,16 +6,16 @@ import (
 	"github.com/levigross/grequests"
 )
 
-//Response a ServiceNow API response
+// Response a ServiceNow API response
 type Response struct {
 	_response   *grequests.Response
 	_chunk_size int
 	_count      int
-	_resource   Resource
-	_stream     bool
+	resource    Resource
+	stream      bool
 }
 
-//NewResponse generates a response struct
+// NewResponse generates a response struct
 func NewResponse(response *grequests.Response, chunk_size int, resource Resource, stream bool) (R Response) {
 	if chunk_size == 0 {
 		chunk_size = 8192
@@ -23,13 +23,13 @@ func NewResponse(response *grequests.Response, chunk_size int, resource Resource
 	R._response = response
 	R._chunk_size = chunk_size
 	R._count = 0
-	R._resource = resource
-	R._stream = stream
+	R.resource = resource
+	R.stream = stream
 
 	return R
 }
 
-//Sanatizes the response for the user
+// Sanatizes the response for the user
 func _sanitize(response *grequests.Response) []map[string]interface{} {
 	var dT = make(map[string]interface{})
 
@@ -55,7 +55,7 @@ sanitize:
 	return returnValue
 }
 
-//Buffers the reponse recieved to make usable by the user
+// Buffers the reponse recieved to make usable by the user
 func (R Response) _get_buffered_response() ([]map[string]interface{}, int, error) {
 	response, err := R.getResponse()
 	if err != nil {
@@ -120,7 +120,7 @@ func (R Response) getResponse() (*grequests.Response, error) {
 	}
 }
 
-//First returns the first record in the map
+// First returns the first record in the map
 func (R Response) First() (map[string]interface{}, error) {
 	content, _, err := R.All()
 	if err != nil {
@@ -135,7 +135,7 @@ func (R Response) First() (map[string]interface{}, error) {
 	}
 }
 
-//All returns all found serviceNow records in a map slice
+// All returns all found serviceNow records in a map slice
 func (R Response) All() ([]map[string]interface{}, int, error) {
 	return R._get_buffered_response()
 }
@@ -144,7 +144,7 @@ func (R Response) All() ([]map[string]interface{}, int, error) {
 //Upload is used to attach an image to a request already made
 func (R Response) Upload(filePath string, multipart bool) (resp Response, err error) {
 
-	attachments, err := R._resource.attachments()
+	attachments, err := R.resource.attachments()
 	if err != nil {
 		return
 	}
@@ -159,7 +159,7 @@ func (R Response) Upload(filePath string, multipart bool) (resp Response, err er
 /*
 func (R Response) Get(limit int) (resp Response, err error) {
 
-	attachments, err := R._resource.attachments()
+	attachments, err := R.resource.attachments()
 	if err != nil {
 		return
 	}

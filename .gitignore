@@ -8,6 +8,9 @@
 #Test directory
 Tests/*
 
+#Vscode directory
+.vscode/*
+
 # Test binary, built with `go test -c`
 *.test
 

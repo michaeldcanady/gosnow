@@ -10,9 +10,9 @@ import (
 
 const pathFormat string = "^/(?:[._a-zA-Z0-9-]/?)+[^/]$"
 
-//isValidatePath assesses whether the given path is valid
+// isValidatePath assesses whether the given path is valid
 //
-//expected format is /<component>[/component]
+// expected format is /<component>[/component]
 func isValidatePath(path string) bool {
 	if match, _ := regexp.MatchString(pathFormat, path); !match {
 		logger.Printf("Path validation failed - Expected: '/<component>[/component], got: %s\n", path)
@@ -21,7 +21,7 @@ func isValidatePath(path string) bool {
 	return true
 }
 
-//Client used as main client for service-now
+// Client used as main client for service-now
 type Client struct {
 	Username string `validate:"required"`
 	Instance string
@@ -83,45 +83,36 @@ func (C Client) Resource(apiPath string) (Resource, error) {
 	return NewResource(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
 }
 
-//Table returns a new instance of the Table API
-func (C Client) Table(tableName string) (Resource, error) {
+// Table returns a new instance of the Table API
+func (C Client) Table(tableName string) (Table, error) {
 	basePath := sharedBase + "/now"
-	apiPath := "/table/" + tableName
 
 	if !C.ready {
 		err := NewInvalidResource("failed to create resource, empty client.")
 		logger.Println(err)
-		return Resource{}, err
+		return Table{}, err
 	}
 
-	for _, path := range []string{apiPath, basePath} {
-		if !isValidatePath(path) {
-			err := errors.New("invalid web address")
-			logger.Println(err)
-			return Resource{}, err
-		}
-	}
-
-	return NewResource(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
+	return NewTable(C.BaseURL, basePath, tableName, C.Session, 8192), nil
 }
 
-//Attachments returns a new instance of the Attachments API
+// Attachments returns a new instance of the Attachments API
 func (C Client) Attachments() (Attachment, error) {
 	resource, _ := C.Resource("/attachment")
 
 	return resource.attachment()
 }
 
-//ServiceCatalog returns a new instance of the Service Catalog API
+// ServiceCatalog returns a new instance of the Service Catalog API
 func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
-	basePath := sharedBase + "/sn_sc"
+
 	if !C.ready {
 		err := errors.New("failed to create service catalog, empty client")
 		logger.Println(err)
 		return ServiceCatalog{}, err
 	}
 
-	for _, path := range []string{apiPath, basePath} {
+	for _, path := range []string{apiPath, sharedBase} {
 		if !isValidatePath(path) {
 			err := errors.New("invalid web address")
 			logger.Println(err)
@@ -129,5 +120,5 @@ func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
 		}
 	}
 
-	return NewServiceCatalog(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
+	return NewServiceCatalog(C.BaseURL, sharedBase, apiPath, C.Session, 8192), nil
 }

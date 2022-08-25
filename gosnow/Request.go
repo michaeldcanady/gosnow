@@ -22,7 +22,7 @@ type Request struct {
 	Parameters     ParamsBuilder
 }
 
-//NewRequest used to create a new serviceNow request
+// NewRequest used to create a new serviceNow request
 func NewRequest(parameters ParamsBuilder, session *grequests.Session, url_builder *url.URL, chunk_size int, resource interface{}) (R Request) {
 	R.Parameters = parameters
 	R.Session = session
@@ -84,7 +84,7 @@ func (R Request) getResponse(method string, stream bool, payload grequests.Reque
 		case "PUT":
 			response, err = R.Session.Put(R.url, &payload)
 			if err != nil {
-				err = fmt.Errorf("Put request Failed: %v", err)
+				err = fmt.Errorf("put request Failed: %v", err)
 				log.Println(err)
 				return Response{}, err
 			}
@@ -113,7 +113,7 @@ func (R Request) delete(query interface{}) (Response, error) {
 	record, _ := resp.First()
 
 	if len(record) == 0 {
-		return Response{}, errors.New("No record retrieve, unable to complete delete request")
+		return Response{}, errors.New("no record retrieve, unable to complete delete request")
 	}
 
 	R.url = R.getCustomEndpoint(record["sys_id"].(string))
@@ -152,6 +152,7 @@ func (R Request) update(query interface{}, payload grequests.RequestOptions) (Re
 	record, err := R.get(query, limits, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
 	if err != nil {
 		err = fmt.Errorf("get error: %v", err)
+		return Response{}, err
 	}
 	first_record, err := record.First()
 	if err != nil {

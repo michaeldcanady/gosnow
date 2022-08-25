@@ -18,7 +18,7 @@ type Resource struct {
 	Parameters ParamsBuilder
 }
 
-//NewResource returns a new serviceNow API resource
+// NewResource returns a new serviceNow API resource
 func NewResource(BaseURL *url.URL, BasePath, ApiPath string, session *grequests.Session, chunkSize int) (R Resource) {
 	R.url = BaseURL
 	R.url.Path = fmt.Sprintf("%s%s", BasePath, ApiPath)
@@ -72,7 +72,7 @@ func (R Resource) request(method string, path_append string, payload grequests.R
 	return R._request().custom(method, path_append, payload)
 }
 
-//Get used to fetch a record
+// Get used to fetch a record
 func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
 	display_value := R.Parameters._sysparms["sysparm_display_value"].(bool)
 	exclude_reference_link := R.Parameters._sysparms["sysparm_exclude_reference_link"].(bool)
@@ -81,12 +81,12 @@ func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fi
 	return R._request().get(query, limits, offset, stream, display_value, exclude_reference_link, suppress_pagination_header, fields...)
 }
 
-//Delete used to remove a record
+// Delete used to remove a record
 func (R Resource) Delete(query interface{}) (Response, error) {
 	return R._request().delete(query)
 }
 
-//Create used to create a new record
+// Create used to create a new record
 func (R Resource) Create(args map[string]string) (resp Response, err error) {
 
 	var payload grequests.RequestOptions
@@ -99,7 +99,7 @@ func (R Resource) Create(args map[string]string) (resp Response, err error) {
 	return R._request().create(payload)
 }
 
-//Update used to modify an existing record
+// Update used to modify an existing record
 func (R Resource) Update(query interface{}, args map[string]string) (resp Response, err error) {
 
 	var payload grequests.RequestOptions
