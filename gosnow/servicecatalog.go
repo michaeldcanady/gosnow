@@ -7,45 +7,52 @@ import (
 	"github.com/levigross/grequests"
 )
 
-//ServiceCatalog the service catalog API
-type ServiceCatalog struct {
-	url        *url.URL
-	Session    *grequests.Session
-	ChunkSize  int
-	Parameters ParamsBuilder
-}
+// ServiceCatalog the service catalog API
+type ServiceCatalog Resource
 
-//NewServiceCatalog returns a new instance of the service catalog API
-func NewServiceCatalog(BaseURL *url.URL, BasePath, ApiPath string, session *grequests.Session, chunkSize int) (S ServiceCatalog) {
-	S.url = BaseURL
-	S.url.Path = fmt.Sprintf("%s%s", BasePath, ApiPath)
-	S.Session = session
-	S.ChunkSize = chunkSize
-	S.Parameters = NewParamsBuilder()
+// NewTable creates a new instance of the ServiceNow Table API
+func NewServiceCatalog(baseURL *url.URL, basePath string, apiPath string, session *grequests.Session, chunkSize int) (S ServiceCatalog) {
+
+	basePath += "/sn_sc/servicecatalog"
+
+	S = ServiceCatalog(NewResource(baseURL, basePath, apiPath, session, 8192))
+
+	fmt.Println(S.url)
 
 	return
 }
 
-// String returns a string representation of the path
+// String returns the string version of the path <[api/now/component/component]>
 func (S ServiceCatalog) String() string {
-	return fmt.Sprintf("<[%s]>", S.path())
+	return Resource(S).String()
 }
 
-// path returns a string representation of the api path
-func (S ServiceCatalog) path() string {
-	return S.url.Path
-}
-
-// _request returns a new SNow Request
-func (S ServiceCatalog) _request() Request {
-	return NewRequest(S.Parameters, S.Session, S.url, 0, S)
-}
-
-// Get returns a response and an error
+// Get used to fetch a record
 func (S ServiceCatalog) Get(query interface{}) (resp Response, err error) {
-	return S._request().get(query, 0, 0, false, false, false, false)
+
+	resp, err = Resource(S).Get(query, 0, 0, false, nil)
+
+	return
+
 }
 
-//func (S ServiceCatalog) Post() (resp Response, err error) {
-//	return S._request().create(grequests.RequestOptions{})
-//}
+// Delete used to remove a record
+func (S ServiceCatalog) Delete(query interface{}) (Response, error) {
+	return Resource(S).Delete(query)
+}
+
+// Create used to create a new record
+func (S ServiceCatalog) Create(args map[string]string) (resp Response, err error) {
+
+	resp, err = Resource(S).Create(args)
+
+	return
+}
+
+// Update used to modify an existing record
+func (S ServiceCatalog) Update(query interface{}, args map[string]string) (resp Response, err error) {
+
+	resp, err = Resource(S).Update(query, args)
+
+	return
+}
