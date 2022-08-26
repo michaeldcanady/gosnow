@@ -29,7 +29,7 @@ go get github.com/michaeldcanady/gosnow
 
 ## Usage
 ``` golang
-import "github.com/michaeldcanady/gosnow/v5/gosnow"
+import "github.com/michaeldcanady/gosnow/v6/gosnow"
 ```
 
 ## Examples
@@ -41,7 +41,7 @@ package main
 import(
     "fmt"
 
-    "github.com/michaeldcanady/gosnow/v5/gosnow"
+    "github.com/michaeldcanady/gosnow/v6/gosnow"
 )
 
 client, _ := gosnow.New(username, password, instance)
@@ -52,7 +52,20 @@ fmt.Println(respose.First())
 ```
 ### Update a table value
 ```golang
+package main
+
+import(
+    "fmt"
+
+    "github.com/michaeldcanady/gosnow/v6/gosnow"
+)
+
+client, _ := gosnow.New(username, password, instance)
+CSTable, _ := client.Table("TableName")
+
+// map of values to update
 query := map[string]interface{}{"field": "value"}
+
 respose, _ := CSTable.Update(query, 1, 0, true, nil)
 ```
 ### Delete a table value
@@ -62,6 +75,20 @@ respose, _ := CSTable.Delete(query)
 ```
 ### Create a table value
 ```golang
+package main
+
+import(
+    "fmt"
+
+    "github.com/michaeldcanady/gosnow/v6/gosnow"
+)
+
+client, _ := gosnow.New(username, password, instance)
+
+CSTable, _ := client.Table("TableName")
+
+query := map[string]interface{}{}
+
 respose, _ := CSTable.Create(query)
 ```
 ## Contributing

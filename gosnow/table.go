@@ -25,11 +25,11 @@ func (T Table) String() string {
 }
 
 // Get used to fetch a record
-func (T Table) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
+func (T Table) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp TableResponse, err error) {
 
-	resp, err = Resource(T).Get(query, limits, offset, stream, fields...)
+	tempResp, err := Resource(T).Get(query, limits, offset, stream, fields...)
 
-	return
+	return TableResponse(tempResp), err
 
 }
 

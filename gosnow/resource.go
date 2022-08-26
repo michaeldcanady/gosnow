@@ -52,10 +52,6 @@ func (R Resource) _request() Request {
 	return NewRequest(R.Parameters, R.Session, R.url, 0, R)
 }
 
-func (R Resource) request(method string, path_append string, payload grequests.RequestOptions) (resp Response, err error) {
-	return R._request().custom(method, path_append, payload)
-}
-
 // Get used to fetch a record
 func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
 	display_value := R.Parameters._sysparms["sysparm_display_value"].(bool)

@@ -162,13 +162,3 @@ func (R Request) update(query interface{}, payload grequests.RequestOptions) (Re
 
 	return R.getResponse("PUT", false, payload)
 }
-
-func (R Request) custom(method string, pathAppend string, payload grequests.RequestOptions) (Response, error) {
-
-	if pathAppend != "" {
-		fmt.Printf("%s'\n", pathAppend)
-		R.url = R.getCustomEndpoint(pathAppend)
-	}
-
-	return R.getResponse(method, false, payload)
-}
