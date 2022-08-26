@@ -2,6 +2,7 @@ package gosnow
 
 import (
 	"net/url"
+	"reflect"
 
 	"github.com/levigross/grequests"
 )
@@ -23,15 +24,15 @@ func (A Attachment) String() string {
 // Get used to fetch a record
 func (A Attachment) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) PreparedRequest {
 
-	return Resource(A).Get(query, limits, offset, stream, fields...)
+	return Resource(A).Get(reflect.TypeOf(A), query, limits, offset, stream, fields...)
 }
 
 // Delete used to remove a record
-func (A Attachment) Delete(query interface{}) (Response, error) {
+func (A Attachment) Delete(query interface{}) PreparedRequest {
 	return Resource(A).Delete(query)
 }
 
-func (A Attachment) Upload(fileData, tableName, tableSysId, fileName string) (resp Response, err error) {
+func (A Attachment) Upload(fileData, tableName, tableSysId, fileName string) PreparedRequest {
 
 	args := make(map[string]interface{})
 	args["data"] = fileData
@@ -47,12 +48,12 @@ func (A Attachment) Upload(fileData, tableName, tableSysId, fileName string) (re
 
 	A.Parameters.AddCustom(parameters)
 
-	resp, err = Resource(A).Post(args)
+	resp := Resource(A).Post(reflect.TypeOf(A), args)
 
 	// reset path to original
 	A.url.Path = oldPath
 
-	return
+	return resp
 }
 
 //func (A Attachment) Download(sysId, destinationPath string) (err error) {

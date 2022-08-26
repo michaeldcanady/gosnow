@@ -32,17 +32,11 @@ func NewResponse(response *grequests.Response, chunk_size int, resource Resource
 }
 
 // Sanatizes the response for the user
-func _sanitize(response *grequests.Response) []ResponseEntry {
-	var dT = make(ResponseEntry)
-
-	err := response.JSON(&dT)
-	if err != nil {
-		logger.Fatal("response error " + err.Error())
-	}
+func _sanitize(response ResponseEntry) []ResponseEntry {
 
 	var returnValue = make([]ResponseEntry, 0)
 sanitize:
-	for _, r := range dT {
+	for _, r := range response {
 		if _, ok := r.(ResponseEntry); ok {
 			returnValue = append(returnValue, ResponseEntry(r.(map[string]interface{})))
 			break sanitize
@@ -69,8 +63,27 @@ func (R Response) _get_buffered_response() ([]ResponseEntry, int, error) {
 		return []ResponseEntry{deleted}, 1, nil
 	}
 
-	sanitized_response := _sanitize(response)
+	var dT = make(ResponseEntry)
+
+	err = R._response.JSON(&dT)
+	if err != nil {
+		logger.Fatal("response error " + err.Error())
+	}
+
+	sanitized_response := _sanitize(dT)
 	return sanitized_response, len(sanitized_response), nil
+}
+
+func (R Response) toBatchedResponse() (BatchedResponse, error) {
+
+	resp := BatchedResponse{}
+
+	err := resp.FromJSON(R._response.String())
+	if err != nil {
+		return BatchedResponse{}, err
+	}
+
+	return resp, nil
 }
 
 func (R Response) getResponse() (*grequests.Response, error) {

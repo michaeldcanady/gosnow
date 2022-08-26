@@ -2,6 +2,7 @@ package gosnow
 
 import (
 	"net/url"
+	"reflect"
 
 	"github.com/levigross/grequests"
 )
@@ -24,27 +25,25 @@ func (T Table) String() string {
 // Get used to fetch a record
 func (T Table) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) PreparedRequest {
 
-	return Resource(T).Get(query, limits, offset, stream, fields...)
+	return Resource(T).Get(reflect.TypeOf(T), query, limits, offset, stream, fields...)
 
 }
 
 // Delete used to remove a record
-func (T Table) Delete(query interface{}) (Response, error) {
+func (T Table) Delete(query interface{}) PreparedRequest {
 	return Resource(T).Delete(query)
 }
 
-// Create used to create a new record
+// Post used to create a new record
 func (T Table) Post(args map[string]interface{}) (resp Response, err error) {
 
-	resp, err = Resource(T).Post(args)
+	prop, err := Resource(T).Post(reflect.TypeOf(T), args).Invoke()
 
-	return
+	return prop.(Response), err
 }
 
 // Update used to modify an existing record
-func (T Table) Update(query interface{}, args map[string]interface{}) (resp Response, err error) {
+func (T Table) Update(query interface{}, args map[string]interface{}) PreparedRequest {
 
-	resp, err = Resource(T).Update(query, args)
-
-	return
+	return Resource(T).Update(reflect.TypeOf(T), query, args)
 }

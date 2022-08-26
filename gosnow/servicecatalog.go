@@ -2,6 +2,7 @@ package gosnow
 
 import (
 	"net/url"
+	"reflect"
 
 	"github.com/levigross/grequests"
 )
@@ -24,26 +25,21 @@ func (S ServiceCatalog) String() string {
 
 // Get used to fetch a record
 func (S ServiceCatalog) Get(query interface{}) PreparedRequest {
-	return Resource(S).Get(query, 0, 0, false, nil)
+	return Resource(S).Get(reflect.TypeOf(S), query, 0, 0, false, nil)
 }
 
 // Delete used to remove a record
-func (S ServiceCatalog) Delete(query interface{}) (Response, error) {
+func (S ServiceCatalog) Delete(query interface{}) PreparedRequest {
 	return Resource(S).Delete(query)
 }
 
 // Create used to create a new record
-func (S ServiceCatalog) Post(args map[string]interface{}) (resp Response, err error) {
-
-	resp, err = Resource(S).Post(args)
-
-	return
+func (S ServiceCatalog) Post(requestType reflect.Type, args map[string]interface{}) PreparedRequest {
+	return Resource(S).Post(requestType, args)
 }
 
 // Update used to modify an existing record
-func (S ServiceCatalog) Update(query interface{}, args map[string]interface{}) (resp Response, err error) {
+func (S ServiceCatalog) Update(query interface{}, args map[string]interface{}) PreparedRequest {
 
-	resp, err = Resource(S).Update(query, args)
-
-	return
+	return Resource(S).Update(reflect.TypeOf(S), query, args)
 }

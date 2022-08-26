@@ -1,10 +1,10 @@
 package gosnow
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"net/url"
+	"reflect"
 	"strings"
 
 	"github.com/levigross/grequests"
@@ -33,7 +33,7 @@ func NewRequest(parameters ParamsBuilder, session *grequests.Session, url_builde
 	return
 }
 
-func (R Request) get(query interface{}, limits int, offset int, stream bool, display_value, exclude_reference_link,
+func (R Request) get(requestType reflect.Type, query interface{}, limits int, offset int, stream bool, display_value, exclude_reference_link,
 	suppress_pagination_header bool, fields ...interface{}) PreparedRequest {
 	if _, ok := query.(string); ok {
 		R.Parameters._sysparms["sysparm_query"] = query.(string)
@@ -49,7 +49,7 @@ func (R Request) get(query interface{}, limits int, offset int, stream bool, dis
 	R.Parameters.exclude_reference_link(exclude_reference_link)
 	R.Parameters.suppress_pagination_header(suppress_pagination_header)
 
-	return NewPreparedRequest(R, GET, stream, grequests.RequestOptions{})
+	return NewPreparedRequest(requestType, R, GET, stream, grequests.RequestOptions{})
 }
 
 func (R Request) getResponse(method Method, stream bool, payload grequests.RequestOptions) (resp Response, err error) {
@@ -85,27 +85,25 @@ func (R Request) getResponse(method Method, stream bool, payload grequests.Reque
 	return NewResponse(response, R.Chunk_size, R.Resource, stream), nil
 }
 
-func (R Request) delete(query interface{}) (Response, error) {
+func (R Request) delete(requestType reflect.Type, query interface{}) PreparedRequest {
 	offset := R.Parameters.getoffset()
 	display_value := R.Parameters.getdisplay_value()
 	exclude_reference_link := R.Parameters.getexclude_reference_link()
 	suppress_pagination_header := R.Parameters.getsuppress_pagination_header()
 
-	request := R.get(query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
+	request := R.get(nil, query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
 
 	resp, _ := request.Invoke()
 
-	record, _ := resp.First()
+	record, _ := resp.(Response).First()
 
 	if len(record) == 0 {
-		return Response{}, errors.New("no record retrieve, unable to complete delete request")
+		return PreparedRequest{} //, errors.New("no record retrieve, unable to complete delete request")
 	}
 
 	R.url = R.getCustomEndpoint(record["sys_id"].(string))
 
-	resp, _ = R.getResponse(DELETE, false, grequests.RequestOptions{})
-
-	return resp, nil
+	return NewPreparedRequest(requestType, R, DELETE, false, grequests.RequestOptions{})
 }
 
 func (R Request) getCustomEndpoint(value string) string {
@@ -119,33 +117,34 @@ func (R Request) getCustomEndpoint(value string) string {
 	return R.URLBuilder.String()
 }
 
-func (R Request) post(payload grequests.RequestOptions) (Response, error) {
-	return R.getResponse(POST, false, payload)
+func (R Request) post(requestType reflect.Type, payload grequests.RequestOptions) PreparedRequest {
+	R.getResponse(POST, false, payload)
+	return NewPreparedRequest(requestType, R, GET, false, grequests.RequestOptions{})
 }
 
-func (R Request) update(query interface{}, payload grequests.RequestOptions) (Response, error) {
+func (R Request) update(requestType reflect.Type, query interface{}, payload grequests.RequestOptions) PreparedRequest {
 	limits, err := R.Parameters.getlimit()
 	if err != nil {
 		err = fmt.Errorf("failed to get limit due to: %v", err)
 		logger.Println(err)
-		return Response{}, err
+		return PreparedRequest{}
 	}
 	offset := R.Parameters.getoffset()
 	display_value := R.Parameters.getdisplay_value()
 	exclude_reference_link := R.Parameters.getexclude_reference_link()
 	suppress_pagination_header := R.Parameters.getsuppress_pagination_header()
-	request := R.get(query, limits, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
+	request := R.get(nil, query, limits, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
 
 	record, err := request.Invoke()
 	if err != nil {
 		err = fmt.Errorf("get error: %v", err)
-		return Response{}, err
+		return PreparedRequest{}
 	}
-	first_record, err := record.First()
+	first_record, err := record.(Response).First()
 	if err != nil {
-		return Response{}, errors.New("could not update due to querying error")
+		return PreparedRequest{} //, errors.New("could not update due to querying error")
 	}
 	R.url = R.getCustomEndpoint(first_record["sys_id"].(string))
 
-	return R.getResponse(PUT, false, payload)
+	return NewPreparedRequest(requestType, R, PUT, false, payload)
 }

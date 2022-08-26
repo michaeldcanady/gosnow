@@ -1,8 +1,8 @@
 package gosnow
 
 import (
-	"fmt"
 	"net/url"
+	"reflect"
 
 	"github.com/levigross/grequests"
 )
@@ -16,7 +16,7 @@ func NewBatch(baseURL *url.URL, apiPath string, session *grequests.Session, chun
 	return
 }
 
-func (B Batch) Post(requests []BatchRequest) (Response, error) {
+func (B Batch) Post(requests []BatchRequest) ([]interface{}, error) {
 
 	batchRequestId := "1"
 
@@ -24,7 +24,40 @@ func (B Batch) Post(requests []BatchRequest) (Response, error) {
 	args["batch_request_id"] = batchRequestId
 	args["rest_requests"] = requests
 
-	fmt.Println(requests)
+	resp, err := Resource(B).Post(reflect.TypeOf(B), args).Invoke()
+	if err != nil {
+		return []interface{}{}, err
+	}
 
-	return Resource(B).Post(args)
+	batchedResp, err := resp.(Response).toBatchedResponse()
+
+	if err != nil {
+		return []interface{}{}, err
+	}
+
+	//batchedResp.Id
+
+	goodResults := []interface{}{}
+
+	for _, response := range batchedResp.ServicedRequests {
+		for _, request := range requests {
+			if response.Id == request.Id {
+				// Convert each list of responses to thier appropriate types
+				switch request.requestType.String() {
+				case "gosnow.Table":
+					results := _sanitize(response.Body)
+					for _, v := range results {
+						goodResults = append(goodResults, TableEntry(v))
+					}
+				case "gosnow.Attachment":
+					results := _sanitize(response.Body)
+					for _, v := range results {
+						goodResults = append(goodResults, AttachmentEntry(v))
+					}
+				}
+			}
+		}
+	}
+
+	return goodResults, nil
 }
