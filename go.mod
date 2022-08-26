@@ -1,4 +1,4 @@
-module github.com/michaeldcanady/gosnow/v6
+module github.com/michaeldcanady/gosnow/v7-beta.1
 
 go 1.19
 
