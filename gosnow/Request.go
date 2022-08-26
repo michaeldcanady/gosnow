@@ -49,54 +49,37 @@ func (R Request) get(query interface{}, limits int, offset int, stream bool, dis
 	R.Parameters.exclude_reference_link(exclude_reference_link)
 	R.Parameters.suppress_pagination_header(suppress_pagination_header)
 
-	return R.getResponse("GET", stream, grequests.RequestOptions{})
+	return R.getResponse(GET, stream, grequests.RequestOptions{})
 }
 
-func (R Request) getResponse(method string, stream bool, payload grequests.RequestOptions) (Response, error) {
+func (R Request) getResponse(method Method, stream bool, payload grequests.RequestOptions) (resp Response, err error) {
 	var response *grequests.Response
-	var err error
-	if method == "GET" {
+
+	if R.url == "<nil>" {
+		err = fmt.Errorf("URL error: URL is Empty")
+		logger.Println(err)
+		return Response{}, err
+	}
+
+	switch method {
+	case GET:
 		response, err = R.Session.Get(R.url, R.Parameters.as_dict())
-		if err != nil {
-			err = fmt.Errorf("get request Failed: %v", err)
-			log.Println(err)
-			return Response{}, err
-		}
-	} else {
+	case POST:
+		payload1 := (*R.Parameters.as_dict())
+		payload1.Headers = payload.Headers
+		payload1.JSON = payload.JSON
 
-		switch method {
-		case "POST":
-			if R.url == "<nil>" {
-				err := fmt.Errorf("URL error: URL is Empty")
-				logger.Println(err)
-				return Response{}, err
-			}
-			payload1 := (*R.Parameters.as_dict())
-			payload1.Headers = payload.Headers
-			payload1.JSON = payload.JSON
+		response, err = R.Session.Post(R.url, &payload1)
+	case PUT:
+		response, err = R.Session.Put(R.url, &payload)
+	case DELETE:
+		response, err = R.Session.Delete(R.url, &payload)
+	}
 
-			response, err = R.Session.Post(R.url, &payload1)
-			if err != nil {
-				err = fmt.Errorf("post request Failed: %v", err)
-				log.Println(err)
-				return Response{}, err
-			}
-		case "PUT":
-			response, err = R.Session.Put(R.url, &payload)
-			if err != nil {
-				err = fmt.Errorf("put request Failed: %v", err)
-				log.Println(err)
-				return Response{}, err
-			}
-		case "DELETE":
-			fmt.Println(R.url)
-			response, err = R.Session.Delete(R.url, &payload)
-			if err != nil {
-				err = fmt.Errorf("delete request Failed: %v", err)
-				log.Println(err)
-				return Response{}, err
-			}
-		}
+	if err != nil {
+		err = fmt.Errorf("request Failed: %s, %v", method, err)
+		log.Println(err)
+		return Response{}, err
 	}
 
 	return NewResponse(response, R.Chunk_size, R.Resource, stream), nil
@@ -118,7 +101,7 @@ func (R Request) delete(query interface{}) (Response, error) {
 
 	R.url = R.getCustomEndpoint(record["sys_id"].(string))
 
-	resp, _ = R.getResponse("DELETE", false, grequests.RequestOptions{})
+	resp, _ = R.getResponse(DELETE, false, grequests.RequestOptions{})
 
 	return resp, nil
 }
@@ -135,7 +118,7 @@ func (R Request) getCustomEndpoint(value string) string {
 }
 
 func (R Request) post(payload grequests.RequestOptions) (Response, error) {
-	return R.getResponse("POST", false, payload)
+	return R.getResponse(POST, false, payload)
 }
 
 func (R Request) update(query interface{}, payload grequests.RequestOptions) (Response, error) {
@@ -160,5 +143,5 @@ func (R Request) update(query interface{}, payload grequests.RequestOptions) (Re
 	}
 	R.url = R.getCustomEndpoint(first_record["sys_id"].(string))
 
-	return R.getResponse("PUT", false, payload)
+	return R.getResponse(PUT, false, payload)
 }
