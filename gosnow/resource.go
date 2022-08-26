@@ -52,22 +52,6 @@ func (R Resource) _request() Request {
 	return NewRequest(R.Parameters, R.Session, R.url, 0, R)
 }
 
-func (R Resource) attachments() (A Attachment, err error) {
-	copyResource := R
-
-	copyResource.url.Path = "/api/now/attachment"
-
-	return NewAttachment(copyResource, R.tableName), err
-}
-
-func (R Resource) attachment() (A Attachment, err error) {
-	copyResource := R
-
-	copyResource.url.Path = "/api/now/attachment"
-
-	return NewAttachment(copyResource, R.tableName), err
-}
-
 func (R Resource) request(method string, path_append string, payload grequests.RequestOptions) (resp Response, err error) {
 	return R._request().custom(method, path_append, payload)
 }
@@ -87,7 +71,7 @@ func (R Resource) Delete(query interface{}) (Response, error) {
 }
 
 // Create used to create a new record
-func (R Resource) Create(args map[string]string) (resp Response, err error) {
+func (R Resource) Post(args map[string]string) (resp Response, err error) {
 
 	var payload grequests.RequestOptions
 
@@ -96,7 +80,7 @@ func (R Resource) Create(args map[string]string) (resp Response, err error) {
 		return
 	}
 
-	return R._request().create(payload)
+	return R._request().post(payload)
 }
 
 // Update used to modify an existing record

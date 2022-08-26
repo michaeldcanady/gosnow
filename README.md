@@ -34,18 +34,21 @@ import "github.com/michaeldcanady/gosnow/v5/gosnow"
 
 ## Examples
 
-### Creating a new client instance
+### Getting a table value
 ``` golang
+package main
+
+import(
+    "fmt"
+
+    "github.com/michaeldcanady/gosnow/v5/gosnow"
+)
+
 client, _ := gosnow.New(username, password, instance)
-```
-### Create table instance
-```golang
 CSTable, _ := client.Table("TableName")
-```
-### Get a table value
-```golang
 query := map[string]interface{}{"field": "value"}
-respose, _ := CSTable.Get(query, )
+respose, _ := CSTable.Get(query, 0, 0, true, nil)
+fmt.Println(respose.First())
 ```
 ### Update a table value
 ```golang

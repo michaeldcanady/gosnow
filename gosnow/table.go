@@ -39,9 +39,9 @@ func (T Table) Delete(query interface{}) (Response, error) {
 }
 
 // Create used to create a new record
-func (T Table) Create(args map[string]string) (resp Response, err error) {
+func (T Table) Post(args map[string]string) (resp Response, err error) {
 
-	resp, err = Resource(T).Create(args)
+	resp, err = Resource(T).Post(args)
 
 	return
 }

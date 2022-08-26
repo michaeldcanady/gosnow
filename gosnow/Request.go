@@ -134,7 +134,7 @@ func (R Request) getCustomEndpoint(value string) string {
 	return R.URLBuilder.String()
 }
 
-func (R Request) create(payload grequests.RequestOptions) (Response, error) {
+func (R Request) post(payload grequests.RequestOptions) (Response, error) {
 	return R.getResponse("POST", false, payload)
 }
 
