@@ -42,9 +42,9 @@ func (S ServiceCatalog) Delete(query interface{}) (Response, error) {
 }
 
 // Create used to create a new record
-func (S ServiceCatalog) Create(args map[string]string) (resp Response, err error) {
+func (S ServiceCatalog) Post(args map[string]string) (resp Response, err error) {
 
-	resp, err = Resource(S).Create(args)
+	resp, err = Resource(S).Post(args)
 
 	return
 }

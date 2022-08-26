@@ -1,106 +1,94 @@
 package gosnow
 
 import (
+	"fmt"
+	"net/url"
 	"os"
-	"path/filepath"
 
 	"github.com/levigross/grequests"
 )
 
-// HASMAGIC if the attachment has magic
-// currently not in use
-var (
-	HASMAGIC = false
-)
+type Attachment Resource
 
-// Attachment the ServiceNow Attachments API
-type Attachment struct {
-	resource  Resource
-	TableName string
-}
+func NewAttachment(BaseURL *url.URL, BasePath string, session *grequests.Session, chunkSize int) (A Attachment) {
 
-// NewAttachment returns new instance of the attachments API
-func NewAttachment(resource Resource, TableName string) (A Attachment) {
-	A.resource = resource
-	A.TableName = TableName
+	ApiPath := "/attachment"
+
+	A = Attachment(NewResource(BaseURL, BasePath, ApiPath, session, chunkSize))
+
 	return
 }
 
-// Get used to query a specific attachment
-func (A Attachment) Get(sys_id string, limit int) (Response, error) {
-	if sys_id == "" {
-		query := map[string]interface{}{"table_name": A.TableName}
-		return A.resource.Get(query, 1, 0, true, nil)
-	}
-	//return A.resource.Get(map[string]interface{}{"table_sys_id": sys_id, "table_name": A.TableName}, limit, 0, true, nil)
-	return A.resource.Get(map[string]interface{}{"sys_id": sys_id}, limit, 0, true, nil)
+// String returns the string version of the path <[api/now/component/component]>
+func (A Attachment) String() string {
+	return Resource(A).String()
 }
 
-func (A Attachment) GetTicket(sys_id string, limit int) (Response, error) {
-	if sys_id == "" {
-		query := map[string]interface{}{"table_name": A.TableName}
-		return A.resource.Get(query, 1, 0, true, nil)
-	}
-	return A.resource.Get(map[string]interface{}{"table_sys_id": sys_id, "table_name": A.TableName}, limit, 0, true, nil)
+// Get used to fetch a record
+func (A Attachment) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
+
+	resp, err = Resource(A).Get(query, limits, offset, stream, fields...)
+
+	return
 }
 
-// Upload new attachment to table
-func (A Attachment) Upload(sys_id, file_path string, multipart bool) (Response, error) {
-	var payload grequests.RequestOptions
-
-	payload.Headers = make(map[string]string)
-
-	resource := A.resource
-	name := filepath.Base(file_path)
-	resource.Parameters.AddCustom(map[string]interface{}{"table_name": A.TableName, "table_sys_id": sys_id, "file_name": name})
-	payload.JSON, _ = os.ReadFile(file_path)
-
-	var path_append string
-
-	if multipart {
-		payload.Headers["Content-Type"] = "multipart/form-data"
-		path_append = "/upload"
-	} else {
-		//TODO Add ability to read magic from files
-
-		if HASMAGIC {
-			//magic.from_file(file_path, mime=True)
-		} else {
-			payload.Headers["Content-Type"] = ("text/plain")
-		}
-		path_append = "/file"
-	}
-
-	return resource.request("POST", path_append, payload)
+// Delete used to remove a record
+func (A Attachment) Delete(query interface{}) (Response, error) {
+	return Resource(A).Delete(query)
 }
 
-// Delete delete a specific attachment by sys_id
-func (A Attachment) Delete(sys_id string) (Response, error) {
-	query := map[string]interface{}{"sys_id": sys_id}
-	return A.resource.Delete(query)
+func (A Attachment) Upload(fileData, tableName, tableSysId, fileName string) (resp Response, err error) {
+
+	args := make(map[string]string)
+	args["data"] = fileData
+
+	oldPath := A.url.Path
+
+	A.url.Path += "/file"
+
+	parameters := make(map[string]interface{})
+	parameters["table_name"] = tableName
+	parameters["table_sys_id"] = tableSysId
+	parameters["file_name"] = fileName
+
+	A.Parameters.AddCustom(parameters)
+
+	resp, err = Resource(A).Post(args)
+
+	// reset path to original
+	A.url.Path = oldPath
+
+	return
 }
 
-// Download download specified attachment to desintationPath from ServiceNow
-func (A Attachment) Download(sys_id string, destinationPath string) (Response, error) {
-	response, err := A.Get(sys_id, 1)
+func (A Attachment) Download(sysId, destinationPath string) (err error) {
+
+	oldPath := A.url.Path
+
+	query := map[string]interface{}{"sys_id": sysId}
+
+	response, err := Resource(A).Get(query, 0, 0, false, nil)
 
 	if err != nil {
-		return Response{}, err
+		return err
 	}
 
 	attachment, err := response.First()
 
 	if err != nil {
-		return Response{}, err
+		return err
 	}
+
+	fmt.Println(attachment)
+
 	downloadLink := attachment["download_link"].(string)
 
-	request := A.resource._request()
+	request := Resource(A)._request()
 	request.url = downloadLink
 	resp, err := request.Session.Get(downloadLink, nil)
 
 	if err != nil {
-		return Response{}, err
+		return err
 	}
 
 	downloadPath := destinationPath + "\\" + attachment["file_name"].(string)
@@ -108,8 +96,11 @@ func (A Attachment) Download(sys_id string, destinationPath string) (Response, e
 	err = os.WriteFile(downloadPath, resp.Bytes(), 0777)
 
 	if err != nil {
-		return Response{}, err
+		return err
 	}
 
-	return Response{}, nil
+	// reset path to original
+	A.url.Path = oldPath
+
+	return
 }

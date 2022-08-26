@@ -15,6 +15,8 @@ type Response struct {
 	stream      bool
 }
 
+type ResponseEntry map[string]interface{}
+
 // NewResponse generates a response struct
 func NewResponse(response *grequests.Response, chunk_size int, resource Resource, stream bool) (R Response) {
 	if chunk_size == 0 {
@@ -30,23 +32,23 @@ func NewResponse(response *grequests.Response, chunk_size int, resource Resource
 }
 
 // Sanatizes the response for the user
-func _sanitize(response *grequests.Response) []map[string]interface{} {
-	var dT = make(map[string]interface{})
+func _sanitize(response *grequests.Response) []ResponseEntry {
+	var dT = make(ResponseEntry)
 
 	err := response.JSON(&dT)
 	if err != nil {
 		logger.Fatal("response error " + err.Error())
 	}
 
-	var returnValue = make([]map[string]interface{}, 0)
+	var returnValue = make([]ResponseEntry, 0)
 sanitize:
 	for _, r := range dT {
-		if _, ok := r.(map[string]interface{}); ok {
-			returnValue = append(returnValue, r.(map[string]interface{}))
+		if _, ok := r.(ResponseEntry); ok {
+			returnValue = append(returnValue, ResponseEntry(r.(map[string]interface{})))
 			break sanitize
 		} else if _, ok := r.([]interface{}); ok {
 			for _, r := range r.([]interface{}) {
-				returnValue = append(returnValue, r.(map[string]interface{}))
+				returnValue = append(returnValue, ResponseEntry(r.(map[string]interface{})))
 			}
 		} else {
 			logger.Println(r)
@@ -56,15 +58,15 @@ sanitize:
 }
 
 // Buffers the reponse recieved to make usable by the user
-func (R Response) _get_buffered_response() ([]map[string]interface{}, int, error) {
+func (R Response) _get_buffered_response() ([]ResponseEntry, int, error) {
 	response, err := R.getResponse()
 	if err != nil {
 		//err := errors.New("could not buffer error due to response error")
-		return []map[string]interface{}{}, 0, err
+		return []ResponseEntry{}, 0, err
 	}
 	if response.StatusCode == 204 {
-		deleted := map[string]interface{}{"status": "record deleted"}
-		return []map[string]interface{}{deleted}, 1, nil
+		deleted := ResponseEntry{"status": "record deleted"}
+		return []ResponseEntry{deleted}, 1, nil
 	}
 
 	sanitized_response := _sanitize(response)
@@ -121,22 +123,22 @@ func (R Response) getResponse() (*grequests.Response, error) {
 }
 
 // First returns the first record in the map
-func (R Response) First() (map[string]interface{}, error) {
+func (R Response) First() (ResponseEntry, error) {
 	content, _, err := R.All()
 	if err != nil {
 		//err = fmt.Errorf("could not retrieve first record because of upstream error")
-		return map[string]interface{}{}, err
+		return ResponseEntry{}, err
 	}
 	if len(content) != 0 {
 		logger.Println(content[0])
 		return content[0], nil
 	} else {
-		return map[string]interface{}{}, nil
+		return ResponseEntry{}, nil
 	}
 }
 
 // All returns all found serviceNow records in a map slice
-func (R Response) All() ([]map[string]interface{}, int, error) {
+func (R Response) All() ([]ResponseEntry, int, error) {
 	return R._get_buffered_response()
 }
 

@@ -134,7 +134,7 @@ func (R Request) getCustomEndpoint(value string) string {
 	return R.URLBuilder.String()
 }
 
-func (R Request) create(payload grequests.RequestOptions) (Response, error) {
+func (R Request) post(payload grequests.RequestOptions) (Response, error) {
 	return R.getResponse("POST", false, payload)
 }
 
@@ -161,14 +161,4 @@ func (R Request) update(query interface{}, payload grequests.RequestOptions) (Re
 	R.url = R.getCustomEndpoint(first_record["sys_id"].(string))
 
 	return R.getResponse("PUT", false, payload)
-}
-
-func (R Request) custom(method string, pathAppend string, payload grequests.RequestOptions) (Response, error) {
-
-	if pathAppend != "" {
-		fmt.Printf("%s'\n", pathAppend)
-		R.url = R.getCustomEndpoint(pathAppend)
-	}
-
-	return R.getResponse(method, false, payload)
 }

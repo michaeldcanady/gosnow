@@ -98,9 +98,15 @@ func (C Client) Table(tableName string) (Table, error) {
 
 // Attachments returns a new instance of the Attachments API
 func (C Client) Attachments() (Attachment, error) {
-	resource, _ := C.Resource("/attachment")
+	basePath := sharedBase + "/now"
 
-	return resource.attachment()
+	if !C.ready {
+		err := NewInvalidResource("failed to create resource, empty client.")
+		logger.Println(err)
+		return Attachment{}, err
+	}
+
+	return NewAttachment(C.BaseURL, basePath, C.Session, 8192), nil
 }
 
 // ServiceCatalog returns a new instance of the Service Catalog API
