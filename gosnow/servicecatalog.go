@@ -23,12 +23,8 @@ func (S ServiceCatalog) String() string {
 }
 
 // Get used to fetch a record
-func (S ServiceCatalog) Get(query interface{}) (resp Response, err error) {
-
-	resp, err = Resource(S).Get(query, 0, 0, false, nil)
-
-	return
-
+func (S ServiceCatalog) Get(query interface{}) PreparedRequest {
+	return Resource(S).Get(query, 0, 0, false, nil)
 }
 
 // Delete used to remove a record
@@ -37,7 +33,7 @@ func (S ServiceCatalog) Delete(query interface{}) (Response, error) {
 }
 
 // Create used to create a new record
-func (S ServiceCatalog) Post(args map[string]string) (resp Response, err error) {
+func (S ServiceCatalog) Post(args map[string]interface{}) (resp Response, err error) {
 
 	resp, err = Resource(S).Post(args)
 
@@ -45,7 +41,7 @@ func (S ServiceCatalog) Post(args map[string]string) (resp Response, err error) 
 }
 
 // Update used to modify an existing record
-func (S ServiceCatalog) Update(query interface{}, args map[string]string) (resp Response, err error) {
+func (S ServiceCatalog) Update(query interface{}, args map[string]interface{}) (resp Response, err error) {
 
 	resp, err = Resource(S).Update(query, args)
 

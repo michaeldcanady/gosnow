@@ -138,7 +138,7 @@ func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
 
 func (C Client) Batch() (Batch, error) {
 
-	apiPath := sharedBase + "/sn_sc/batch"
+	apiPath := sharedBase + "/now/v1/batch"
 
 	if !C.ready {
 		err := errors.New("failed to create service catalog, empty client")

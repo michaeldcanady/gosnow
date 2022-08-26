@@ -1,9 +1,7 @@
 package gosnow
 
 import (
-	"fmt"
 	"net/url"
-	"os"
 
 	"github.com/levigross/grequests"
 )
@@ -23,11 +21,9 @@ func (A Attachment) String() string {
 }
 
 // Get used to fetch a record
-func (A Attachment) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
+func (A Attachment) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) PreparedRequest {
 
-	resp, err = Resource(A).Get(query, limits, offset, stream, fields...)
-
-	return
+	return Resource(A).Get(query, limits, offset, stream, fields...)
 }
 
 // Delete used to remove a record
@@ -37,7 +33,7 @@ func (A Attachment) Delete(query interface{}) (Response, error) {
 
 func (A Attachment) Upload(fileData, tableName, tableSysId, fileName string) (resp Response, err error) {
 
-	args := make(map[string]string)
+	args := make(map[string]interface{})
 	args["data"] = fileData
 
 	oldPath := A.url.Path
@@ -59,46 +55,48 @@ func (A Attachment) Upload(fileData, tableName, tableSysId, fileName string) (re
 	return
 }
 
-func (A Attachment) Download(sysId, destinationPath string) (err error) {
+//func (A Attachment) Download(sysId, destinationPath string) (err error) {
 
-	oldPath := A.url.Path
+//	oldPath := A.url.Path
 
-	query := map[string]interface{}{"sys_id": sysId}
+//	query := map[string]interface{}{"sys_id": sysId}
 
-	response, err := Resource(A).Get(query, 0, 0, false, nil)
+//	response := Resource(A).Get(query, 0, 0, false, nil)
 
-	if err != nil {
-		return err
-	}
+//	if err != nil {
+//		return err
+//	}
 
-	attachment, err := response.First()
+//	response.Invoke()
 
-	if err != nil {
-		return err
-	}
+//	attachment, err := response.First()
 
-	fmt.Println(attachment)
+//	if err != nil {
+//		return err
+//	}
 
-	downloadLink := attachment["download_link"].(string)
+//	fmt.Println(attachment)
 
-	request := Resource(A)._request()
-	request.url = downloadLink
-	resp, err := request.Session.Get(downloadLink, nil)
+//	downloadLink := attachment["download_link"].(string)
 
-	if err != nil {
-		return err
-	}
+//	request := Resource(A)._request()
+//	request.url = downloadLink
+//	resp, err := request.Session.Get(downloadLink, nil)
 
-	downloadPath := destinationPath + "\\" + attachment["file_name"].(string)
+//	if err != nil {
+//		return err
+//	}
 
-	err = os.WriteFile(downloadPath, resp.Bytes(), 0777)
+//	downloadPath := destinationPath + "\\" + attachment["file_name"].(string)
 
-	if err != nil {
-		return err
-	}
+//	err = os.WriteFile(downloadPath, resp.Bytes(), 0777)
 
-	// reset path to original
-	A.url.Path = oldPath
+//	if err != nil {
+//		return err
+//	}
 
-	return
-}
+// reset path to original
+//	A.url.Path = oldPath
+
+//	return
+//}

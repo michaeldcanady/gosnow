@@ -34,7 +34,7 @@ func NewRequest(parameters ParamsBuilder, session *grequests.Session, url_builde
 }
 
 func (R Request) get(query interface{}, limits int, offset int, stream bool, display_value, exclude_reference_link,
-	suppress_pagination_header bool, fields ...interface{}) (Response, error) {
+	suppress_pagination_header bool, fields ...interface{}) PreparedRequest {
 	if _, ok := query.(string); ok {
 		R.Parameters._sysparms["sysparm_query"] = query.(string)
 	} else if _, ok := query.(map[string]interface{}); ok {
@@ -49,7 +49,7 @@ func (R Request) get(query interface{}, limits int, offset int, stream bool, dis
 	R.Parameters.exclude_reference_link(exclude_reference_link)
 	R.Parameters.suppress_pagination_header(suppress_pagination_header)
 
-	return R.getResponse(GET, stream, grequests.RequestOptions{})
+	return NewPreparedRequest(R, GET, stream, grequests.RequestOptions{})
 }
 
 func (R Request) getResponse(method Method, stream bool, payload grequests.RequestOptions) (resp Response, err error) {
@@ -91,7 +91,9 @@ func (R Request) delete(query interface{}) (Response, error) {
 	exclude_reference_link := R.Parameters.getexclude_reference_link()
 	suppress_pagination_header := R.Parameters.getsuppress_pagination_header()
 
-	resp, _ := R.get(query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
+	request := R.get(query, 1, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
+
+	resp, _ := request.Invoke()
 
 	record, _ := resp.First()
 
@@ -132,7 +134,9 @@ func (R Request) update(query interface{}, payload grequests.RequestOptions) (Re
 	display_value := R.Parameters.getdisplay_value()
 	exclude_reference_link := R.Parameters.getexclude_reference_link()
 	suppress_pagination_header := R.Parameters.getsuppress_pagination_header()
-	record, err := R.get(query, limits, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
+	request := R.get(query, limits, offset, false, display_value, exclude_reference_link, suppress_pagination_header, nil)
+
+	record, err := request.Invoke()
 	if err != nil {
 		err = fmt.Errorf("get error: %v", err)
 		return Response{}, err

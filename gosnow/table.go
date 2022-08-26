@@ -22,11 +22,9 @@ func (T Table) String() string {
 }
 
 // Get used to fetch a record
-func (T Table) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp TableResponse, err error) {
+func (T Table) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) PreparedRequest {
 
-	tempResp, err := Resource(T).Get(query, limits, offset, stream, fields...)
-
-	return TableResponse(tempResp), err
+	return Resource(T).Get(query, limits, offset, stream, fields...)
 
 }
 
@@ -36,7 +34,7 @@ func (T Table) Delete(query interface{}) (Response, error) {
 }
 
 // Create used to create a new record
-func (T Table) Post(args map[string]string) (resp Response, err error) {
+func (T Table) Post(args map[string]interface{}) (resp Response, err error) {
 
 	resp, err = Resource(T).Post(args)
 
@@ -44,7 +42,7 @@ func (T Table) Post(args map[string]string) (resp Response, err error) {
 }
 
 // Update used to modify an existing record
-func (T Table) Update(query interface{}, args map[string]string) (resp Response, err error) {
+func (T Table) Update(query interface{}, args map[string]interface{}) (resp Response, err error) {
 
 	resp, err = Resource(T).Update(query, args)
 

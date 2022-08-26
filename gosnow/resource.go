@@ -30,7 +30,7 @@ func NewResource(BaseURL *url.URL, ApiPath string, session *grequests.Session, c
 	return
 }
 
-func (R Resource) toJSON(args map[string]string) (JSON []byte, err error) {
+func (R Resource) toJSON(args map[string]interface{}) (JSON []byte, err error) {
 	JSON, err = json.Marshal(args)
 	if err != nil {
 		err = fmt.Errorf("issue marshalling args into Javascript: %v", err)
@@ -53,7 +53,7 @@ func (R Resource) _request() Request {
 }
 
 // Get used to fetch a record
-func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) (resp Response, err error) {
+func (R Resource) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) PreparedRequest {
 	display_value := R.Parameters._sysparms["sysparm_display_value"].(bool)
 	exclude_reference_link := R.Parameters._sysparms["sysparm_exclude_reference_link"].(bool)
 	suppress_pagination_header := R.Parameters._sysparms["sysparm_suppress_pagination_header"].(bool)
@@ -67,9 +67,13 @@ func (R Resource) Delete(query interface{}) (Response, error) {
 }
 
 // Create used to create a new record
-func (R Resource) Post(args map[string]string) (resp Response, err error) {
+func (R Resource) Post(args map[string]interface{}) (resp Response, err error) {
 
 	var payload grequests.RequestOptions
+
+	json, _ := (R.toJSON(args))
+
+	fmt.Println(string(json))
 
 	payload.JSON, err = R.toJSON(args)
 	if err != nil {
@@ -80,7 +84,7 @@ func (R Resource) Post(args map[string]string) (resp Response, err error) {
 }
 
 // Update used to modify an existing record
-func (R Resource) Update(query interface{}, args map[string]string) (resp Response, err error) {
+func (R Resource) Update(query interface{}, args map[string]interface{}) (resp Response, err error) {
 
 	var payload grequests.RequestOptions
 
