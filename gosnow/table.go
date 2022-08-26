@@ -1,7 +1,6 @@
 package gosnow
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/levigross/grequests"
@@ -10,11 +9,9 @@ import (
 type Table Resource
 
 // NewTable creates a new instance of the ServiceNow Table API
-func NewTable(baseURL *url.URL, basePath string, tableName string, session *grequests.Session, chunkSize int) (T Table) {
+func NewTable(baseURL *url.URL, apiPath string, session *grequests.Session, chunkSize int) (T Table) {
 
-	apiPath := fmt.Sprintf("/table/%s", tableName)
-
-	T = Table(NewResource(baseURL, basePath, apiPath, session, 8192))
+	T = Table(NewResource(baseURL, apiPath, session, 8192))
 
 	return
 }

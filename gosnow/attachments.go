@@ -10,11 +10,9 @@ import (
 
 type Attachment Resource
 
-func NewAttachment(BaseURL *url.URL, BasePath string, session *grequests.Session, chunkSize int) (A Attachment) {
+func NewAttachment(BaseURL *url.URL, ApiPath string, session *grequests.Session, chunkSize int) (A Attachment) {
 
-	ApiPath := "/attachment"
-
-	A = Attachment(NewResource(BaseURL, BasePath, ApiPath, session, chunkSize))
+	A = Attachment(NewResource(BaseURL, ApiPath, session, chunkSize))
 
 	return
 }

@@ -2,6 +2,7 @@ package gosnow
 
 import (
 	"errors"
+	"fmt"
 	"net/url"
 	"regexp"
 
@@ -32,6 +33,7 @@ type Client struct {
 }
 
 const sharedBase = "/api"
+const sharedBaseNow = sharedBase + "/now"
 
 // New Creates a new Client struct using the provided username, password, and instance
 func New(username, password, instance string) (C Client, err error) {
@@ -64,7 +66,8 @@ func New(username, password, instance string) (C Client, err error) {
 // Resource is used to create table resources
 // Each new table that can be queried needs its own .Resource
 func (C Client) Resource(apiPath string) (Resource, error) {
-	basePath := sharedBase + "/now"
+
+	apiPath = sharedBaseNow + apiPath
 
 	if !C.ready {
 		err := NewInvalidResource("failed to create resource, empty client.")
@@ -72,7 +75,7 @@ func (C Client) Resource(apiPath string) (Resource, error) {
 		return Resource{}, err
 	}
 
-	for _, path := range []string{apiPath, basePath} {
+	for _, path := range []string{apiPath} {
 		if !isValidatePath(path) {
 			err := NewInvalidResource("invalid web address")
 			logger.Println(err)
@@ -80,12 +83,13 @@ func (C Client) Resource(apiPath string) (Resource, error) {
 		}
 	}
 
-	return NewResource(C.BaseURL, basePath, apiPath, C.Session, 8192), nil
+	return NewResource(C.BaseURL, apiPath, C.Session, 8192), nil
 }
 
 // Table returns a new instance of the Table API
 func (C Client) Table(tableName string) (Table, error) {
-	basePath := sharedBase + "/now"
+
+	apiPath := fmt.Sprintf("%s/table/%s", sharedBaseNow, tableName)
 
 	if !C.ready {
 		err := NewInvalidResource("failed to create resource, empty client.")
@@ -93,12 +97,13 @@ func (C Client) Table(tableName string) (Table, error) {
 		return Table{}, err
 	}
 
-	return NewTable(C.BaseURL, basePath, tableName, C.Session, 8192), nil
+	return NewTable(C.BaseURL, apiPath, C.Session, 8192), nil
 }
 
 // Attachments returns a new instance of the Attachments API
 func (C Client) Attachments() (Attachment, error) {
-	basePath := sharedBase + "/now"
+
+	ApiPath := sharedBaseNow + "/attachment"
 
 	if !C.ready {
 		err := NewInvalidResource("failed to create resource, empty client.")
@@ -106,11 +111,13 @@ func (C Client) Attachments() (Attachment, error) {
 		return Attachment{}, err
 	}
 
-	return NewAttachment(C.BaseURL, basePath, C.Session, 8192), nil
+	return NewAttachment(C.BaseURL, ApiPath, C.Session, 8192), nil
 }
 
 // ServiceCatalog returns a new instance of the Service Catalog API
 func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
+
+	apiPath = sharedBase + "/sn_sc/servicecatalog" + apiPath
 
 	if !C.ready {
 		err := errors.New("failed to create service catalog, empty client")
@@ -118,7 +125,7 @@ func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
 		return ServiceCatalog{}, err
 	}
 
-	for _, path := range []string{apiPath, sharedBase} {
+	for _, path := range []string{apiPath} {
 		if !isValidatePath(path) {
 			err := errors.New("invalid web address")
 			logger.Println(err)
@@ -126,5 +133,18 @@ func (C Client) ServiceCatalog(apiPath string) (ServiceCatalog, error) {
 		}
 	}
 
-	return NewServiceCatalog(C.BaseURL, sharedBase, apiPath, C.Session, 8192), nil
+	return NewServiceCatalog(C.BaseURL, apiPath, C.Session, 8192), nil
+}
+
+func (C Client) Batch() (Batch, error) {
+
+	apiPath := sharedBase + "/sn_sc/batch"
+
+	if !C.ready {
+		err := errors.New("failed to create service catalog, empty client")
+		logger.Println(err)
+		return Batch{}, err
+	}
+
+	return NewBatch(C.BaseURL, apiPath, C.Session, 8192), nil
 }

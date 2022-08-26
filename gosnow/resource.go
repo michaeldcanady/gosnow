@@ -19,9 +19,9 @@ type Resource struct {
 }
 
 // NewResource returns a new serviceNow API resource
-func NewResource(BaseURL *url.URL, BasePath, ApiPath string, session *grequests.Session, chunkSize int) (R Resource) {
+func NewResource(BaseURL *url.URL, ApiPath string, session *grequests.Session, chunkSize int) (R Resource) {
 	R.url = BaseURL
-	R.url.Path = fmt.Sprintf("%s%s", BasePath, ApiPath)
+	R.url.Path = ApiPath
 	R.Session = session
 	R.tableName = ApiPath
 	R.ChunkSize = chunkSize

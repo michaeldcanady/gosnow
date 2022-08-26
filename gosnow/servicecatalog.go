@@ -1,7 +1,6 @@
 package gosnow
 
 import (
-	"fmt"
 	"net/url"
 
 	"github.com/levigross/grequests"
@@ -11,13 +10,9 @@ import (
 type ServiceCatalog Resource
 
 // NewTable creates a new instance of the ServiceNow Table API
-func NewServiceCatalog(baseURL *url.URL, basePath string, apiPath string, session *grequests.Session, chunkSize int) (S ServiceCatalog) {
+func NewServiceCatalog(baseURL *url.URL, apiPath string, session *grequests.Session, chunkSize int) (S ServiceCatalog) {
 
-	basePath += "/sn_sc/servicecatalog"
-
-	S = ServiceCatalog(NewResource(baseURL, basePath, apiPath, session, 8192))
-
-	fmt.Println(S.url)
+	S = ServiceCatalog(NewResource(baseURL, apiPath, session, 8192))
 
 	return
 }
