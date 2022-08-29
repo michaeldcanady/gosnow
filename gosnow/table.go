@@ -23,15 +23,15 @@ func (T Table) String() string {
 }
 
 // Get used to fetch a record
-func (T Table) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) PreparedRequest {
+func (T Table) Get(query interface{}, limits int, offset int, stream bool, fields ...interface{}) Request {
 
 	return Resource(T).Get(reflect.TypeOf(T), query, limits, offset, stream, fields...)
 
 }
 
 // Delete used to remove a record
-func (T Table) Delete(query interface{}) PreparedRequest {
-	return Resource(T).Delete(query)
+func (T Table) Delete(query interface{}) Request {
+	return Resource(T).Delete(reflect.TypeOf(T), query)
 }
 
 // Post used to create a new record
@@ -43,7 +43,7 @@ func (T Table) Post(args map[string]interface{}) (resp Response, err error) {
 }
 
 // Update used to modify an existing record
-func (T Table) Update(query interface{}, args map[string]interface{}) PreparedRequest {
+func (T Table) Update(query interface{}, args map[string]interface{}) Request {
 
 	return Resource(T).Update(reflect.TypeOf(T), query, args)
 }

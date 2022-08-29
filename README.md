@@ -29,7 +29,7 @@ go get github.com/michaeldcanady/gosnow
 
 ## Usage
 ``` golang
-import "github.com/michaeldcanady/gosnow/v6/gosnow"
+import "github.com/michaeldcanady/gosnow/v7-beta.1/gosnow"
 ```
 
 ## Examples
@@ -41,14 +41,25 @@ package main
 import(
     "fmt"
 
-    "github.com/michaeldcanady/gosnow/v6/gosnow"
+    "github.com/michaeldcanady/gosnow/v7-beta.1/gosnow"
 )
 
 client, _ := gosnow.New(username, password, instance)
 CSTable, _ := client.Table("TableName")
 query := map[string]interface{}{"field": "value"}
-respose, _ := CSTable.Get(query, 0, 0, true, nil)
-fmt.Println(respose.First())
+
+//Generate a new request
+request := CSTable.Get(query, 0, 0, true, nil)
+
+// Invoke the created request
+response, err := request.Invoke();
+if err != nil {
+	panic(err)
+}
+
+// Get the first entry from the response, type TableEntry
+entry, _ := respose.(gosnow.TableResponse).First()
+fmt.Println(entry)
 ```
 ### Update a table value
 ```golang
@@ -57,7 +68,7 @@ package main
 import(
     "fmt"
 
-    "github.com/michaeldcanady/gosnow/v6/gosnow"
+    "github.com/michaeldcanady/gosnow/v7-beta.1/gosnow"
 )
 
 client, _ := gosnow.New(username, password, instance)
@@ -80,7 +91,7 @@ package main
 import(
     "fmt"
 
-    "github.com/michaeldcanady/gosnow/v6/gosnow"
+    "github.com/michaeldcanady/gosnow/v7-beta.1/gosnow"
 )
 
 client, _ := gosnow.New(username, password, instance)

@@ -19,6 +19,7 @@ type BatchedResponse struct {
 	Id                string         `json:"batch_request_id"`
 	ServicedRequests  []BatchReponse `json:"serviced_requests"`
 	UnservicedRequets []BatchReponse `json:"unserviced_requests"`
+	response          Response
 }
 
 func (B *BatchedResponse) FromJSON(JSON string) error {
@@ -33,7 +34,7 @@ func (B *BatchedResponse) FromJSON(JSON string) error {
 			return err
 		}
 
-		if err := json.Unmarshal(b64[:n], &r.Body); err != nil {
+		if err := json.Unmarshal(b64[:n], &r.Body.Entry); err != nil {
 			panic(err)
 		}
 

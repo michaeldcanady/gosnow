@@ -12,7 +12,7 @@ type PreparedRequest struct {
 	Method         Method
 	Stream         bool
 	RequestOptions grequests.RequestOptions
-	Request        Request
+	Request        *Request
 }
 
 func NewPreparedRequest(requestType reflect.Type, request Request, method Method, stream bool, requestOptions grequests.RequestOptions) (P PreparedRequest) {
@@ -21,11 +21,12 @@ func NewPreparedRequest(requestType reflect.Type, request Request, method Method
 	P.Method = method
 	P.Stream = stream
 	P.RequestOptions = requestOptions
-	P.Request = request
+	P.Request = &request
 
 	return
 }
 
+// Invoke runs the prepared request
 func (P PreparedRequest) Invoke() (interface{}, error) {
 	switch P.requestType.String() {
 	case "gosnow.Table":
@@ -34,11 +35,9 @@ func (P PreparedRequest) Invoke() (interface{}, error) {
 			return nil, err
 		}
 		return TableResponse(response), nil
-	case "gosnow.":
-
+	default:
+		return P.Request.getResponse(P.Method, P.Stream, P.RequestOptions)
 	}
-
-	return P.Request.getResponse(P.Method, P.Stream, P.RequestOptions)
 }
 
 func (P PreparedRequest) AsBatchRequest(id string, excludeResponseHeaders bool) BatchRequest {
@@ -48,7 +47,7 @@ func (P PreparedRequest) AsBatchRequest(id string, excludeResponseHeaders bool) 
 	requestType := P.requestType
 
 	Body := ""
-	headers := []map[string]string{} //P.Request.Session.RequestOptions.Headers
+	headers := []map[string]string{}
 
 	params := P.Request.Parameters.as_dict().Params
 

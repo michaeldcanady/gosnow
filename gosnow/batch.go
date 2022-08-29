@@ -1,6 +1,7 @@
 package gosnow
 
 import (
+	"fmt"
 	"net/url"
 	"reflect"
 
@@ -18,16 +19,20 @@ func NewBatch(baseURL *url.URL, apiPath string, session *grequests.Session, chun
 
 func (B Batch) Post(requests []BatchRequest) ([]interface{}, error) {
 
-	batchRequestId := "1"
+	batchRequestId := "2"
 
 	args := map[string]interface{}{}
 	args["batch_request_id"] = batchRequestId
 	args["rest_requests"] = requests
 
 	resp, err := Resource(B).Post(reflect.TypeOf(B), args).Invoke()
+	fmt.Println(err)
 	if err != nil {
 		return []interface{}{}, err
 	}
+
+	//_, _, err = resp.(Response).All()
+	//fmt.Println(err)
 
 	batchedResp, err := resp.(Response).toBatchedResponse()
 
@@ -35,9 +40,9 @@ func (B Batch) Post(requests []BatchRequest) ([]interface{}, error) {
 		return []interface{}{}, err
 	}
 
-	//batchedResp.Id
-
 	goodResults := []interface{}{}
+
+	fmt.Println(batchedResp)
 
 	for _, response := range batchedResp.ServicedRequests {
 		for _, request := range requests {
@@ -45,12 +50,12 @@ func (B Batch) Post(requests []BatchRequest) ([]interface{}, error) {
 				// Convert each list of responses to thier appropriate types
 				switch request.requestType.String() {
 				case "gosnow.Table":
-					results := _sanitize(response.Body)
+					results := batchedResp.response._sanitize(response.Body)
 					for _, v := range results {
 						goodResults = append(goodResults, TableEntry(v))
 					}
 				case "gosnow.Attachment":
-					results := _sanitize(response.Body)
+					results := batchedResp.response._sanitize(response.Body)
 					for _, v := range results {
 						goodResults = append(goodResults, AttachmentEntry(v))
 					}

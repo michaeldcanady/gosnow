@@ -2,6 +2,7 @@ package gosnow
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/levigross/grequests"
 )
@@ -15,10 +16,14 @@ type Response struct {
 	stream      bool
 }
 
-type ResponseEntry map[string]interface{}
+type ResponseEntry struct {
+	resource Resource
+	Entry    map[string]interface{}
+}
 
 // NewResponse generates a response struct
 func NewResponse(response *grequests.Response, chunk_size int, resource Resource, stream bool) (R Response) {
+
 	if chunk_size == 0 {
 		chunk_size = 8192
 	}
@@ -32,17 +37,28 @@ func NewResponse(response *grequests.Response, chunk_size int, resource Resource
 }
 
 // Sanatizes the response for the user
-func _sanitize(response ResponseEntry) []ResponseEntry {
+func (R Response) _sanitize(response ResponseEntry) []ResponseEntry {
 
 	var returnValue = make([]ResponseEntry, 0)
 sanitize:
-	for _, r := range response {
+	for _, r := range response.Entry {
 		if _, ok := r.(ResponseEntry); ok {
-			returnValue = append(returnValue, ResponseEntry(r.(map[string]interface{})))
+			entry := ResponseEntry{
+				resource: R.resource,
+				Entry:    r.(map[string]interface{}),
+			}
+
+			returnValue = append(returnValue, entry)
 			break sanitize
 		} else if _, ok := r.([]interface{}); ok {
 			for _, r := range r.([]interface{}) {
-				returnValue = append(returnValue, ResponseEntry(r.(map[string]interface{})))
+
+				entry := ResponseEntry{
+					resource: R.resource,
+					Entry:    r.(map[string]interface{}),
+				}
+
+				returnValue = append(returnValue, entry)
 			}
 		} else {
 			logger.Println(r)
@@ -59,24 +75,33 @@ func (R Response) _get_buffered_response() ([]ResponseEntry, int, error) {
 		return []ResponseEntry{}, 0, err
 	}
 	if response.StatusCode == 204 {
-		deleted := ResponseEntry{"status": "record deleted"}
+		deleted := ResponseEntry{
+			resource: R.resource,
+			Entry:    map[string]interface{}{"status": "record deleted"},
+		}
 		return []ResponseEntry{deleted}, 1, nil
 	}
 
-	var dT = make(ResponseEntry)
+	var dT = ResponseEntry{
+		resource: R.resource,
+	}
 
-	err = R._response.JSON(&dT)
+	err = R._response.JSON(&dT.Entry)
 	if err != nil {
 		logger.Fatal("response error " + err.Error())
 	}
 
-	sanitized_response := _sanitize(dT)
+	sanitized_response := R._sanitize(dT)
 	return sanitized_response, len(sanitized_response), nil
 }
 
 func (R Response) toBatchedResponse() (BatchedResponse, error) {
 
-	resp := BatchedResponse{}
+	resp := BatchedResponse{
+		response: R,
+	}
+
+	fmt.Println(R._response)
 
 	err := resp.FromJSON(R._response.String())
 	if err != nil {

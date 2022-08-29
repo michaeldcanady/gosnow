@@ -24,22 +24,22 @@ func (S ServiceCatalog) String() string {
 }
 
 // Get used to fetch a record
-func (S ServiceCatalog) Get(query interface{}) PreparedRequest {
+func (S ServiceCatalog) Get(query interface{}) Request {
 	return Resource(S).Get(reflect.TypeOf(S), query, 0, 0, false, nil)
 }
 
 // Delete used to remove a record
-func (S ServiceCatalog) Delete(query interface{}) PreparedRequest {
-	return Resource(S).Delete(query)
+func (S ServiceCatalog) Delete(query interface{}) Request {
+	return Resource(S).Delete(reflect.TypeOf(S), query)
 }
 
 // Create used to create a new record
-func (S ServiceCatalog) Post(requestType reflect.Type, args map[string]interface{}) PreparedRequest {
+func (S ServiceCatalog) Post(requestType reflect.Type, args map[string]interface{}) Request {
 	return Resource(S).Post(requestType, args)
 }
 
 // Update used to modify an existing record
-func (S ServiceCatalog) Update(query interface{}, args map[string]interface{}) PreparedRequest {
+func (S ServiceCatalog) Update(query interface{}, args map[string]interface{}) Request {
 
 	return Resource(S).Update(reflect.TypeOf(S), query, args)
 }

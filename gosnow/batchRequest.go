@@ -12,7 +12,7 @@ const (
 )
 
 type BatchRequest struct {
-	requestType            reflect.Type
+	requestType            reflect.Type        `json:"-"`
 	Body                   string              `json:",omitempty"`
 	ExcludeResponseHeaders bool                `json:"exclude_response_headers"`
 	Headers                []map[string]string `json:"headers"`

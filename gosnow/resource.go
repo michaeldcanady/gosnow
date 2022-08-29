@@ -53,8 +53,8 @@ func (R Resource) _request() Request {
 	return NewRequest(R.Parameters, R.Session, R.url, 0, R)
 }
 
-// Get used to fetch a record
-func (R Resource) Get(requestType reflect.Type, query interface{}, limits int, offset int, stream bool, fields ...interface{}) PreparedRequest {
+// Get used to generate a prepared request
+func (R Resource) Get(requestType reflect.Type, query interface{}, limits int, offset int, stream bool, fields ...interface{}) Request {
 	display_value := R.Parameters._sysparms["sysparm_display_value"].(bool)
 	exclude_reference_link := R.Parameters._sysparms["sysparm_exclude_reference_link"].(bool)
 	suppress_pagination_header := R.Parameters._sysparms["sysparm_suppress_pagination_header"].(bool)
@@ -63,36 +63,34 @@ func (R Resource) Get(requestType reflect.Type, query interface{}, limits int, o
 }
 
 // Delete used to remove a record
-func (R Resource) Delete(query interface{}) PreparedRequest {
-	return R._request().delete(reflect.TypeOf(R), query)
+func (R Resource) Delete(requestType reflect.Type, query interface{}) Request {
+	return R._request().delete(requestType, query)
 }
 
 // Create used to create a new record
-func (R Resource) Post(requestType reflect.Type, args map[string]interface{}) PreparedRequest {
+func (R Resource) Post(requestType reflect.Type, args map[string]interface{}) Request {
 
 	var payload grequests.RequestOptions
+	var err error
 
-	json, err := R.toJSON(args)
+	payload.JSON, err = R.toJSON(args)
 	if err != nil {
-		return PreparedRequest{}
+		return Request{}
 	}
-
-	payload.JSON = json
 
 	return R._request().post(requestType, payload)
 }
 
 // Update used to modify an existing record
-func (R Resource) Update(requestType reflect.Type, query interface{}, args map[string]interface{}) PreparedRequest {
+func (R Resource) Update(requestType reflect.Type, query interface{}, args map[string]interface{}) Request {
 
 	var payload grequests.RequestOptions
+	var err error
 
-	json, err := R.toJSON(args)
+	payload.JSON, err = R.toJSON(args)
 	if err != nil {
-		return PreparedRequest{}
+		return Request{}
 	}
-
-	payload.JSON = json
 
 	return R._request().update(requestType, query, payload)
 }

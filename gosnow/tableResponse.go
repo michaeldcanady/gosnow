@@ -2,8 +2,6 @@ package gosnow
 
 type TableResponse Response
 
-type TableEntry ResponseEntry
-
 // First returns the first record in the map
 func (R TableResponse) First() (TableEntry, error) {
 	content, _, err := R.All()
