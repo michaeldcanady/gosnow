@@ -22,6 +22,7 @@ type BatchedResponse struct {
 	response          Response
 }
 
+// FROMJSON converts JSON to BatchResponse
 func (B *BatchedResponse) FromJSON(JSON string) error {
 	err := json.Unmarshal([]byte(JSON), B)
 
