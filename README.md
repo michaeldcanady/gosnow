@@ -8,6 +8,8 @@
 ![GitHub](https://img.shields.io/github/license/michaeldcanady/gosnow?style=plastic)
 ![GitHub all releases](https://img.shields.io/github/downloads/michaeldcanady/gosnow/total?style=plastic)
 
+# DEPRECATION NOTICE: This module has been deprecated in favor of [servicenow-sdk-go](https://github.com/michaeldcanady/servicenow-sdk-go)
+
 ### Table of Contents
 * [Current Ideas](#current-ideas)
 * [Installation](#installation)
